@@ -10,6 +10,7 @@
 │   └── endpoints.py          # API 端点定义（全量 wx-api）
 ├── utils/
 │   ├── api_client.py         # HTTP 客户端（Session + Token 自动注入）
+│   ├── response.py           # ApiResponse 统一响应封装
 │   ├── assertions.py         # 自定义断言
 │   ├── logger.py             # 结构化日志
 │   └── test_data_manager.py  # 测试数据加载（YAML）
@@ -95,9 +96,8 @@ class TestLitemallLogin:
     @pytest.mark.parametrize("case_id", LOGIN_CASES)
     def test_login(self, api_client, auth_data, case_id):
         case = auth_data[case_id]
-        response = api_client.post(Endpoints.AUTH_LOGIN, json=case["request"])
-        body = response.json()
-        assert body["errno"] == case["expected"]["errno"]
+        resp = api_client.post(Endpoints.AUTH_LOGIN, json=case["request"])
+        assert resp.errno == case["expected"]["errno"]  # ApiResponse 自动解析
 ```
 
 新增测试用例只需在 YAML 中添加数据节点，无需修改测试代码。
@@ -109,13 +109,13 @@ class TestLitemallLogin:
 ```python
 # 需要 token 的测试 → 用 authenticated_client，无需手动传 headers
 def test_get_user_info(self, authenticated_client, auth_data):
-    response = authenticated_client.get(Endpoints.AUTH_INFO)
-    assert response.json()["errno"] == 0
+    resp = authenticated_client.get(Endpoints.AUTH_INFO)
+    assert resp.ok  # ApiResponse 自动解析 errno
 
 # 不需要 token 的测试 → 用 api_client
 def test_without_token(self, api_client):
-    response = api_client.get(Endpoints.AUTH_INFO)
-    assert response.json()["errno"] == 501  # 请登录
+    resp = api_client.get(Endpoints.AUTH_INFO)
+    assert resp.is_unauthorized  # errno == 501
 ```
 
 实现原理：`APIClient` 内部维护 `requests.Session`，`set_token()` 将 token 写入 `session.headers`，后续所有请求自动携带。
@@ -145,7 +145,25 @@ class TestShoppingFlow:
         response = api_client.get(Endpoints.GOODS_DETAIL, params={"id": self.goods_id})
 ```
 
-### 4. 自定义断言
+### 4. ApiResponse 统一响应封装
+
+所有 HTTP 方法返回 `ApiResponse` 对象，自动解析 litemall 的 `{errno, errmsg, data}` 结构，无需手动 `.json()`：
+
+```python
+resp = api_client.get(Endpoints.AUTH_INFO)
+
+# 直接访问业务字段，无需 .json()
+print(resp.errno)      # 0
+print(resp.errmsg)     # "成功"
+print(resp.data)       # {"nickName": "user123", ...}
+
+# 便捷属性
+assert resp.ok                  # errno == 0
+assert resp.is_unauthorized     # errno == 501
+assert resp.is_bad_argument     # errno == 401
+```
+
+### 5. 自定义断言
 
 ```python
 APIAssertions.assert_status_code(response, 200)       # 状态码

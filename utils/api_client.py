@@ -3,6 +3,7 @@
 API 客户端 - 封装 requests 库，提供统一的 HTTP 请求接口
 """
 import time
+import json as json_module
 from typing import Any, Dict, Optional, Tuple
 import requests
 from requests.exceptions import RequestException, Timeout, ConnectionError
@@ -10,6 +11,7 @@ from requests.exceptions import RequestException, Timeout, ConnectionError
 from config.settings import get_settings
 from config.endpoints import EndpointBuilder
 from utils.logger import get_logger
+from utils.response import ApiResponse
 
 
 logger = get_logger(__name__)
@@ -53,7 +55,7 @@ class APIClient:
         json: Optional[Dict] = None,
         headers: Optional[Dict] = None,
         with_auth: bool = False
-    ) -> requests.Response:
+    ) -> ApiResponse:
         """
         发送 HTTP 请求（带重试机制）
 
@@ -67,7 +69,7 @@ class APIClient:
             with_auth: 是否携带认证令牌
 
         Returns:
-            响应对象
+            ApiResponse 对象（自动解析 errno/errmsg/data）
 
         Raises:
             RequestException: 请求失败
@@ -83,7 +85,10 @@ class APIClient:
 
         while retry_count <= self.max_retries:
             try:
-                logger.info(f"发送 {method} 请求: {url}")
+                # 记录请求日志（含请求体）
+                req_detail = _format_request_detail(method, url, params, json, data)
+                logger.info(f"请求: {req_detail}")
+
                 response = self.session.request(
                     method=method,
                     url=url,
@@ -94,12 +99,7 @@ class APIClient:
                     timeout=self.timeout
                 )
 
-                logger.info(
-                    f"响应: {response.status_code} - "
-                    f"耗时: {response.elapsed.total_seconds():.2f}s"
-                )
-
-                return response
+                return ApiResponse.from_response(response)
 
             except Timeout as e:
                 last_exception = e
@@ -126,7 +126,7 @@ class APIClient:
         params: Optional[Dict] = None,
         headers: Optional[Dict] = None,
         with_auth: bool = False
-    ) -> requests.Response:
+    ) -> ApiResponse:
         """发送 GET 请求"""
         return self._make_request(
             method='GET',
@@ -143,7 +143,7 @@ class APIClient:
         data: Optional[Dict] = None,
         headers: Optional[Dict] = None,
         with_auth: bool = False
-    ) -> requests.Response:
+    ) -> ApiResponse:
         """发送 POST 请求"""
         return self._make_request(
             method='POST',
@@ -161,7 +161,7 @@ class APIClient:
         data: Optional[Dict] = None,
         headers: Optional[Dict] = None,
         with_auth: bool = False
-    ) -> requests.Response:
+    ) -> ApiResponse:
         """发送 PUT 请求"""
         return self._make_request(
             method='PUT',
@@ -179,7 +179,7 @@ class APIClient:
         data: Optional[Dict] = None,
         headers: Optional[Dict] = None,
         with_auth: bool = False
-    ) -> requests.Response:
+    ) -> ApiResponse:
         """发送 PATCH 请求"""
         return self._make_request(
             method='PATCH',
@@ -196,7 +196,7 @@ class APIClient:
         params: Optional[Dict] = None,
         headers: Optional[Dict] = None,
         with_auth: bool = False
-    ) -> requests.Response:
+    ) -> ApiResponse:
         """发送 DELETE 请求"""
         return self._make_request(
             method='DELETE',
@@ -215,3 +215,26 @@ class APIClient:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
+
+
+# ─── 模块级工具 ───
+
+def _format_request_detail(
+    method: str,
+    url: str,
+    params: Optional[Dict] = None,
+    json_body: Optional[Dict] = None,
+    data: Optional[Dict] = None,
+) -> str:
+    """格式化请求详情用于日志"""
+    parts = [f"{method} {url}"]
+    if params:
+        parts.append(f"params={params}")
+    if json_body:
+        body_str = json_module.dumps(json_body, ensure_ascii=False)
+        if len(body_str) > 200:
+            body_str = body_str[:200] + "..."
+        parts.append(f"json={body_str}")
+    if data:
+        parts.append(f"data={data}")
+    return " | ".join(parts)

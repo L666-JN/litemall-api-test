@@ -142,7 +142,7 @@ def authenticated_client(auth_data: dict) -> APIClient:
     client = APIClient()
     login_case = auth_data["login_success"]
     login_resp = client.post("/wx/auth/login", json=login_case["request"])
-    token = login_resp.json()["data"]["token"]
+    token = login_resp.data["token"]
     client.set_token(token)
     logger.info("已创建认证客户端")
     yield client

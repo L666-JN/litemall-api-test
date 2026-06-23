@@ -45,6 +45,9 @@ allure-report/
 .DS_Store
 Thumbs.db
 
+# Personal
+*.pdf
+
 # Environment
 .env
 .env.local
