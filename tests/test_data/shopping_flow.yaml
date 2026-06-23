@@ -1,0 +1,61 @@
+# Litemall 消费者下单业务流测试数据
+
+# ============ 首页 ============
+home_index:
+  description: "获取首页数据"
+  expected:
+    errno: 0
+    fields: ["banner", "channel", "newGoodsList", "hotGoodsList", "brandList", "topicList", "floorGoodsList"]
+
+# ============ 商品详情 ============
+goods_detail:
+  description: "查看商品详情"
+  expected:
+    errno: 0
+    fields: ["info", "specificationList", "productList", "attribute", "brand", "issue", "comment"]
+
+# ============ 收货地址 ============
+address_save:
+  description: "创建收货地址"
+  request:
+    name: "测试用户"
+    tel: "13800138000"
+    province: "广东省"
+    city: "广州市"
+    county: "天河区"
+    areaCode: "440106"
+    addressDetail: "天河路100号测试大楼"
+    isDefault: true
+  expected:
+    errno: 0
+
+# ============ 购物车 ============
+cart_add:
+  description: "加入购物车"
+  request:
+    number: 1
+  expected:
+    errno: 0
+
+cart_checkout:
+  description: "购物车结算"
+  expected:
+    errno: 0
+    fields: ["checkedGoodsList", "goodsTotalPrice", "freightPrice", "orderTotalPrice", "actualPrice"]
+
+# ============ 订单 ============
+order_submit:
+  description: "提交订单"
+  expected:
+    errno: 0
+
+order_list:
+  description: "查看订单列表"
+  expected:
+    errno: 0
+
+order_detail:
+  description: "查看订单详情"
+  expected:
+    errno: 0
+    fields: ["orderInfo", "orderGoods"]

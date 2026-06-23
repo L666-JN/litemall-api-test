@@ -1,0 +1,72 @@
+# Litemall 登录模块测试数据
+# 基路径: /wx/auth
+
+# ============ 登录测试用例 ============
+login_success:
+  description: "正确的用户名密码登录成功"
+  request:
+    username: "user123"
+    password: "user123"
+  expected:
+    errno: 0
+    errmsg: "成功"
+    has_token: true
+    nickName: "user123"
+
+login_wrong_password:
+  description: "错误密码返回 AUTH_INVALID_ACCOUNT(700)"
+  request:
+    username: "user123"
+    password: "wrongpassword"
+  expected:
+    errno: 700
+
+login_nonexistent_user:
+  description: "不存在的用户返回 AUTH_INVALID_ACCOUNT(700)"
+  request:
+    username: "nonexistent_user_999"
+    password: "somepassword"
+  expected:
+    errno: 700
+    errmsg_contains: "账号不存在"
+
+login_empty_username:
+  description: "空用户名返回参数错误"
+  request:
+    username: ""
+    password: "somepassword"
+  expected:
+    errno_not: 0
+
+login_empty_password:
+  description: "空密码返回参数错误"
+  request:
+    username: "user123"
+    password: ""
+  expected:
+    errno_not: 0
+
+# ============ 认证后接口测试 ============
+user_info:
+  description: "登录后获取用户信息"
+  expected:
+    errno: 0
+    fields: ["nickName", "avatar", "gender", "mobile"]
+
+user_info_no_token:
+  description: "未登录获取用户信息返回 501"
+  expected:
+    errno: 501
+    errmsg: "请登录"
+
+logout:
+  description: "登录后登出"
+  expected:
+    errno: 0
+    errmsg: "成功"
+
+logout_no_token:
+  description: "未登录登出返回 501"
+  expected:
+    errno: 501
+    errmsg: "请登录"
