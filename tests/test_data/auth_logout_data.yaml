@@ -1,17 +1,17 @@
-# Litemall 登出模块 测试数据
+# Litemall 登出 测试数据
 # 由 scripts/excel_to_yaml.py 自动生成
-# 来源: D:\litemall-api-test\test_design\auth_module_testcases.xlsx
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
 
-logout_invalid_token:
-  description: 带伪造的无效token登出（应拒绝）
+logout_with_token:
+  description: 带有效token登出
   module: 登出
-  priority: P1
+  priority: P0
   method: POST
-  need_auth: false
+  need_auth: true
   endpoint: /wx/auth/logout
   expected:
-    errno: 501
-    errmsg: 请登录
+    errno: 0
+    errmsg: 成功
     has_data: false
 
 logout_no_token:
@@ -26,14 +26,14 @@ logout_no_token:
     errmsg: 请登录
     has_data: false
 
-logout_with_token:
-  description: 带有效token登出
+logout_invalid_token:
+  description: 带伪造的无效token登出（应拒绝）
   module: 登出
-  priority: P0
+  priority: P1
   method: POST
-  need_auth: true
+  need_auth: false
   endpoint: /wx/auth/logout
   expected:
-    errno: 0
-    errmsg: 成功
+    errno: 501
+    errmsg: 请登录
     has_data: false

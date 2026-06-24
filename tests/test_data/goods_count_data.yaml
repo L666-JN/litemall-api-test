@@ -1,0 +1,15 @@
+# Litemall 商品统计 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+goods_count_default:
+  description: 获取商品总数
+  module: 商品统计
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/goods/count
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: true

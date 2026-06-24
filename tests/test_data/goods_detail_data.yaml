@@ -1,0 +1,39 @@
+# Litemall 商品详情 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+goods_detail_missing_id:
+  description: 不传id
+  module: 商品详情
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/goods/detail
+  expected:
+    errno: 402
+    errmsg: id不能为null
+    has_data: false
+
+goods_detail_zero_id:
+  description: id=0
+  module: 商品详情
+  priority: P1
+  method: GET
+  need_auth: false
+  endpoint: /wx/goods/detail
+  expected:
+    errno: 502
+    has_data: false
+  params: id=0
+
+goods_detail_nonexistent:
+  description: id=99999不存在
+  module: 商品详情
+  priority: P1
+  method: GET
+  need_auth: false
+  endpoint: /wx/goods/detail
+  expected:
+    errno: 502
+    has_data: false
+  params: id=99999

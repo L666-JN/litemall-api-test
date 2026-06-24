@@ -97,6 +97,54 @@ def auth_reset_data(test_data: TestDataManager) -> dict:
     return test_data.load_yaml('auth_reset_data')
 
 
+# ========== 商品模块数据 Fixtures ==========
+
+@pytest.fixture(scope='function')
+def goods_list_data(test_data: TestDataManager) -> dict:
+    """商品列表测试数据"""
+    return test_data.load_yaml('goods_list_data')
+
+
+@pytest.fixture(scope='function')
+def goods_detail_data(test_data: TestDataManager) -> dict:
+    """商品详情测试数据"""
+    return test_data.load_yaml('goods_detail_data')
+
+
+@pytest.fixture(scope='function')
+def goods_category_data(test_data: TestDataManager) -> dict:
+    """商品分类测试数据"""
+    return test_data.load_yaml('goods_category_data')
+
+
+@pytest.fixture(scope='function')
+def goods_related_data(test_data: TestDataManager) -> dict:
+    """相关商品测试数据"""
+    return test_data.load_yaml('goods_related_data')
+
+
+@pytest.fixture(scope='function')
+def goods_count_data(test_data: TestDataManager) -> dict:
+    """商品统计测试数据"""
+    return test_data.load_yaml('goods_count_data')
+
+
+# ========== 动态数据 Fixtures ==========
+
+@pytest.fixture(scope='function')
+def valid_goods_id(api_client: APIClient) -> int:
+    """从 goods/list 动态获取一个有效商品 id"""
+    resp = api_client.get("/wx/goods/list", params="page=1&size=1")
+    return resp.data["list"][0]["id"]
+
+
+@pytest.fixture(scope='function')
+def valid_category_id(api_client: APIClient, valid_goods_id: int) -> int:
+    """从 goods/detail 获取商品所属分类 id"""
+    resp = api_client.get(f"/wx/goods/detail", params=f"id={valid_goods_id}")
+    return resp.data["info"]["categoryId"]
+
+
 # ========== 兼容旧引用的合并数据 Fixture ==========
 
 @pytest.fixture(scope='function')

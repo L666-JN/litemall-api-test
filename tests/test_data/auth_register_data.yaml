@@ -1,24 +1,9 @@
-# Litemall 注册模块 测试数据
+# Litemall 注册 测试数据
 # 由 scripts/excel_to_yaml.py 自动生成
-# 来源: D:\litemall-api-test\test_design\auth_module_testcases.xlsx
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
 
-register_duplicate_username:
-  description: 用已存在的用户名注册（应拒绝）
-  module: 注册
-  priority: P0
-  method: POST
-  need_auth: false
-  endpoint: /wx/auth/register
-  expected:
-    errno_not: 0
-    has_data: false
-  request:
-    username: user123
-    password: Test1234!
-    mobile: '13800138004'
-
-register_empty_mobile:
-  description: 空手机号注册（应拒绝）
+register_missing_wxcode:
+  description: 缺少wxCode字段注册（wxCode需通过regCaptcha获取）
   module: 注册
   priority: P1
   method: POST
@@ -28,24 +13,9 @@ register_empty_mobile:
     errno_not: 0
     has_data: false
   request:
-    username: testuser_nomob
+    username: testuser_reg
     password: Test1234!
-    mobile: ''
-
-register_empty_password:
-  description: 空密码注册（应拒绝）
-  module: 注册
-  priority: P1
-  method: POST
-  need_auth: false
-  endpoint: /wx/auth/register
-  expected:
-    errno_not: 0
-    has_data: false
-  request:
-    username: testuser_nopwd
-    password: ''
-    mobile: '13800138003'
+    mobile: '13800138001'
 
 register_empty_username:
   description: 空用户名注册（应拒绝）
@@ -62,6 +32,51 @@ register_empty_username:
     password: Test1234!
     mobile: '13800138002'
 
+register_empty_password:
+  description: 空密码注册（应拒绝）
+  module: 注册
+  priority: P1
+  method: POST
+  need_auth: false
+  endpoint: /wx/auth/register
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    username: testuser_nopwd
+    password: ''
+    mobile: '13800138003'
+
+register_empty_mobile:
+  description: 空手机号注册（应拒绝）
+  module: 注册
+  priority: P1
+  method: POST
+  need_auth: false
+  endpoint: /wx/auth/register
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    username: testuser_nomob
+    password: Test1234!
+    mobile: ''
+
+register_duplicate_username:
+  description: 用已存在的用户名注册（应拒绝）
+  module: 注册
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/auth/register
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    username: user123
+    password: Test1234!
+    mobile: '13800138004'
+
 register_invalid_mobile:
   description: 格式非法的手机号注册（应拒绝）
   module: 注册
@@ -76,21 +91,6 @@ register_invalid_mobile:
     username: testuser_badmob
     password: Test1234!
     mobile: '12345'
-
-register_missing_wxcode:
-  description: 缺少wxCode字段注册（wxCode需通过regCaptcha获取，当前无法自动化）
-  module: 注册
-  priority: P1
-  method: POST
-  need_auth: false
-  endpoint: /wx/auth/register
-  expected:
-    errno_not: 0
-    has_data: false
-  request:
-    username: testuser_reg
-    password: Test1234!
-    mobile: '13800138001'
 
 register_short_password:
   description: 密码过短注册（应拒绝，如后端有校验）

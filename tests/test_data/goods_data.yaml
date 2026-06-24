@@ -1,0 +1,214 @@
+# Litemall goods 模块合集 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+goods_list_default:
+  description: 默认商品列表（验证分页字段）
+  module: 商品列表
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/goods/list
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: true
+    fields:
+    - total
+    - pages
+    - limit
+    - page
+    - list
+
+goods_list_page2_size3:
+  description: 第2页每页3条
+  module: 商品列表
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/goods/list
+  expected:
+    errno: 0
+    has_data: true
+    fields:
+    - list
+  params: page=2&size=3
+
+goods_list_keyword_valid:
+  description: 搜索关键词"茶"
+  module: 商品列表
+  priority: P1
+  method: GET
+  need_auth: false
+  endpoint: /wx/goods/list
+  expected:
+    errno: 0
+    has_data: true
+    fields:
+    - list
+    - filterCategoryList
+  params: keyword=茶
+
+goods_list_keyword_none:
+  description: 搜索无结果关键词
+  module: 商品列表
+  priority: P1
+  method: GET
+  need_auth: false
+  endpoint: /wx/goods/list
+  expected:
+    errno: 0
+    has_data: true
+    fields:
+    - list
+  params: keyword=xyznonexist999
+
+goods_list_is_new:
+  description: 筛选新品
+  module: 商品列表
+  priority: P1
+  method: GET
+  need_auth: false
+  endpoint: /wx/goods/list
+  expected:
+    errno: 0
+    has_data: true
+    fields:
+    - list
+  params: isNew=true
+
+goods_list_is_hot:
+  description: 筛选热门
+  module: 商品列表
+  priority: P1
+  method: GET
+  need_auth: false
+  endpoint: /wx/goods/list
+  expected:
+    errno: 0
+    has_data: true
+    fields:
+    - list
+  params: isHot=true
+
+goods_list_empty_category:
+  description: 空分类（无商品）
+  module: 商品列表
+  priority: P1
+  method: GET
+  need_auth: false
+  endpoint: /wx/goods/list
+  expected:
+    errno: 0
+    has_data: true
+    fields:
+    - list
+  params: categoryId=0
+
+goods_list_sort_invalid:
+  description: 无效排序字段
+  module: 商品列表
+  priority: P2
+  method: GET
+  need_auth: false
+  endpoint: /wx/goods/list
+  expected:
+    errno: 402
+    has_data: false
+  params: sort=invalid_field
+
+goods_detail_missing_id:
+  description: 不传id
+  module: 商品详情
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/goods/detail
+  expected:
+    errno: 402
+    errmsg: id不能为null
+    has_data: false
+
+goods_detail_zero_id:
+  description: id=0
+  module: 商品详情
+  priority: P1
+  method: GET
+  need_auth: false
+  endpoint: /wx/goods/detail
+  expected:
+    errno: 502
+    has_data: false
+  params: id=0
+
+goods_detail_nonexistent:
+  description: id=99999不存在
+  module: 商品详情
+  priority: P1
+  method: GET
+  need_auth: false
+  endpoint: /wx/goods/detail
+  expected:
+    errno: 502
+    has_data: false
+  params: id=99999
+
+goods_category_missing_id:
+  description: 不传id
+  module: 商品分类
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/goods/category
+  expected:
+    errno: 402
+    errmsg: id不能为null
+    has_data: false
+
+goods_category_nonexistent:
+  description: id=99999不存在
+  module: 商品分类
+  priority: P1
+  method: GET
+  need_auth: false
+  endpoint: /wx/goods/category
+  expected:
+    errno: 502
+    has_data: false
+  params: id=99999
+
+goods_related_missing_id:
+  description: 不传id
+  module: 相关商品
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/goods/related
+  expected:
+    errno: 402
+    errmsg: id不能为null
+    has_data: false
+
+goods_related_invalid_id:
+  description: id=99999不存在
+  module: 相关商品
+  priority: P1
+  method: GET
+  need_auth: false
+  endpoint: /wx/goods/related
+  expected:
+    errno: 402
+    has_data: false
+  params: id=99999
+
+goods_count_default:
+  description: 获取商品总数
+  module: 商品统计
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/goods/count
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: true

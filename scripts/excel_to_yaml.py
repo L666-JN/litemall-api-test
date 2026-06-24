@@ -1,221 +1,216 @@
 """
 Excel 测试用例 → YAML 转换脚本
 
-读取 test_design/ 下的 Excel 文件，生成对应的 YAML 测试数据文件
-输出到 tests/test_data/
+读取 test_design/litemall_testcases.xlsx（多个 sheet，每个 sheet 一个模块），
+一键生成所有 YAML 测试数据文件到 tests/test_data/
 
 用法: python scripts/excel_to_yaml.py [excel_file] [--output dir]
 """
 import sys
 import json
-import re
 from pathlib import Path
 
 import openpyxl
 import yaml
 
 
-# 需要认证的 case_id（这些用例通过 authenticated_client 执行）
-# Excel 中 "need_auth" 列为 "是" 的自动识别
-# 额外标记为"手动设置假token"的，也加入需要特殊处理
+# ============================================================
+#  Sheet 名 → YAML 文件名 映射
+#  格式: { sheet_name: yaml_filename_without_extension }
+# ============================================================
+SHEET_TO_FILE = {
+    "登录":     "auth_login_data",
+    "登出":     "auth_logout_data",
+    "用户信息": "auth_info_data",
+    "注册":     "auth_register_data",
+    "密码重置": "auth_reset_data",
+    "商品列表": "goods_list_data",
+    "商品详情": "goods_detail_data",
+    "商品分类": "goods_category_data",
+    "相关商品": "goods_related_data",
+    "商品统计": "goods_count_data",
+}
+
+# 模块分组（用于生成合并版 YAML）
+MODULE_GROUPS = {
+    "auth":  ["登录", "登出", "用户信息", "注册", "密码重置"],
+    "goods": ["商品列表", "商品详情", "商品分类", "相关商品", "商品统计"],
+}
+
+# 表头列名（固定）
+HEADERS_EXPECTED = [
+    "用例编号", "用例ID", "模块", "用例描述", "优先级",
+    "接口路径", "请求方法", "需要认证", "请求参数", "请求体",
+    "预期HTTP状态码", "预期errno", "预期errno不为",
+    "预期errmsg", "预期errmsg包含", "预期data有值", "预期data字段",
+]
+
+
+def _parse_case(case: dict) -> dict:
+    """将 Excel 一行的原始字典转为 YAML 节点"""
+    expected = {}
+
+    exp_errno = case.get("预期errno", "")
+    exp_errno_not = case.get("预期errno不为", "")
+    exp_errmsg = case.get("预期errmsg", "")
+    exp_errmsg_contains = case.get("预期errmsg包含", "")
+    exp_has_data = case.get("预期data有值", "")
+    exp_check_fields = case.get("预期data字段", "")
+
+    if exp_errno != "" and exp_errno is not None:
+        val = int(exp_errno) if str(exp_errno).lstrip('-').isdigit() else exp_errno
+        expected["errno"] = val
+    if exp_errno_not != "" and exp_errno_not is not None:
+        val = int(exp_errno_not) if str(exp_errno_not).lstrip('-').isdigit() else exp_errno_not
+        expected["errno_not"] = val
+    if exp_errmsg != "" and exp_errmsg is not None:
+        expected["errmsg"] = str(exp_errmsg)
+    if exp_errmsg_contains != "" and exp_errmsg_contains is not None:
+        expected["errmsg_contains"] = str(exp_errmsg_contains)
+    if exp_has_data in ("是", "true", "True"):
+        expected["has_data"] = True
+    elif exp_has_data in ("否", "false", "False"):
+        expected["has_data"] = False
+    if exp_check_fields != "" and exp_check_fields is not None:
+        expected["fields"] = [f.strip() for f in str(exp_check_fields).split(",") if f.strip()]
+
+    # request body
+    req_body = case.get("请求体", "")
+    request = None
+    if req_body and str(req_body).strip():
+        try:
+            request = json.loads(str(req_body))
+        except json.JSONDecodeError:
+            request = {"_raw": str(req_body)}
+
+    # URL params
+    req_params = case.get("请求参数", "")
+    params = None
+    if req_params and str(req_params).strip():
+        params = str(req_params).strip()
+
+    node = {
+        "description": str(case.get("用例描述", "")),
+        "module": str(case.get("模块", "")),
+        "priority": str(case.get("优先级", "")),
+        "method": str(case.get("请求方法", "")).upper(),
+        "need_auth": str(case.get("需要认证", "")) in ("是", "true", "True"),
+        "endpoint": str(case.get("接口路径", "")),
+        "expected": expected,
+    }
+
+    if params:
+        node["params"] = params
+    if request:
+        node["request"] = request
+
+    return node
 
 
 def excel_to_yaml(excel_path: str, output_dir: str):
-    """读取 Excel，按模块拆分生成 YAML 文件"""
+    """读取 Excel 的所有 sheet，按模块生成 YAML 文件 + 合并版"""
     wb = openpyxl.load_workbook(excel_path)
-    ws = wb.active  # 第一个 sheet = 用例数据
-
-    # 读取表头
-    headers = []
-    for col in range(1, ws.max_column + 1):
-        headers.append(ws.cell(1, col).value)
-
-    # 解析所有用例行
-    cases = []
-    for row in range(2, ws.max_row + 1):
-        case = {}
-        for col, header in enumerate(headers, 1):
-            val = ws.cell(row, col).value
-            case[header] = val if val is not None else ""
-        cases.append(case)
-
-    # 按模块分组
-    modules = {}
-    for case in cases:
-        mod = case.get("模块", "")
-        if mod not in modules:
-            modules[mod] = []
-        modules[mod].append(case)
-
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # 模块 → YAML 文件名映射
-    module_file_map = {
-        "登录": "auth_login_data",
-        "登出": "auth_logout_data",
-        "用户信息": "auth_info_data",
-        "注册": "auth_register_data",
-        "密码重置": "auth_reset_data",
-    }
-
+    all_module_cases = {}   # { module_name: { case_id: node } }
     total_count = 0
-    for mod_name, mod_cases in modules.items():
+
+    for sheet_name in wb.sheetnames:
+        ws = wb[sheet_name]
+
+        # 读取表头
+        headers = []
+        for col in range(1, ws.max_column + 1):
+            val = ws.cell(1, col).value
+            headers.append(val if val else "")
+
+        # 读取所有数据行
+        cases = []
+        for row in range(2, ws.max_row + 1):
+            case = {}
+            for col, header in enumerate(headers, 1):
+                val = ws.cell(row, col).value
+                case[header] = val if val is not None else ""
+            # 跳过空行
+            if case.get("用例ID", ""):
+                cases.append(case)
+
+        if not cases:
+            print(f"  [SKIP] {sheet_name}: 无用例数据")
+            continue
+
+        # 转换为 YAML 节点
         yaml_data = {}
-        for case in mod_cases:
+        for case in cases:
             case_id = case["用例ID"]
-            expected = {}
+            yaml_data[case_id] = _parse_case(case)
 
-            # ── expected 字段 ──
-            exp_errno = case["预期errno"]
-            exp_errno_not = case["预期errno不为"]
-            exp_errmsg = case["预期errmsg"]
-            exp_errmsg_contains = case["预期errmsg包含"]
-            exp_has_data = case["预期data有值"]
-            exp_check_fields = case["预期data字段"]
+            # 收集到 all_module_cases 用于合并
+            mod = case.get("模块", sheet_name)
+            if mod not in all_module_cases:
+                all_module_cases[mod] = {}
+            all_module_cases[mod][case_id] = yaml_data[case_id]
 
-            if exp_errno != "":
-                expected["errno"] = int(exp_errno) if str(exp_errno).isdigit() else exp_errno
-            if exp_errno_not != "":
-                expected["errno_not"] = int(exp_errno_not) if str(exp_errno_not).isdigit() else exp_errno_not
-            if exp_errmsg != "":
-                expected["errmsg"] = str(exp_errmsg)
-            if exp_errmsg_contains != "":
-                expected["errmsg_contains"] = str(exp_errmsg_contains)
-            if exp_has_data in ("是", "true", "True"):
-                expected["has_data"] = True
-            elif exp_has_data in ("否", "false", "False"):
-                expected["has_data"] = False
-            if exp_check_fields != "":
-                expected["fields"] = [f.strip() for f in str(exp_check_fields).split(",") if f.strip()]
-
-            # ── request 字段 ──
-            req_body = case["请求体"]
-            request = None
-            if req_body and req_body.strip():
-                try:
-                    request = json.loads(req_body)
-                except json.JSONDecodeError:
-                    request = {"_raw": req_body}
-
-            req_params = case["请求参数"]
-            params = None
-            if req_params and req_params.strip():
-                params = str(req_params).strip()
-
-            # ── 组装 YAML 节点 ──
-            node = {
-                "description": str(case["用例描述"]),
-                "module": str(case["模块"]),
-                "priority": str(case["优先级"]),
-                "method": str(case["请求方法"]).upper(),
-                "need_auth": str(case["需要认证"]) in ("是", "true", "True"),
-                "endpoint": str(case["接口路径"]),
-                "expected": expected,
-            }
-
-            if params:
-                node["params"] = params
-
-            if request:
-                node["request"] = request
-
-            yaml_data[case_id] = node
-
-        # ── 写 YAML 文件 ──
-        filename = module_file_map.get(mod_name)
+        # 写分模块 YAML
+        filename = SHEET_TO_FILE.get(sheet_name)
         if filename is None:
-            filename = re.sub(r'[^\w]', '_', mod_name).lower()
-            # 去掉多余下划线
-            filename = re.sub(r'_+', '_', filename).strip('_') + "_data"
+            # fallback: sheet 名拼音化
+            filename = _sheet_to_filename(sheet_name)
 
         filepath = output_dir / f"{filename}.yaml"
-        with open(filepath, "w", encoding="utf-8") as f:
-            f.write(f"# Litemall {mod_name}模块 测试数据\n")
-            f.write(f"# 由 scripts/excel_to_yaml.py 自动生成\n")
-            f.write(f"# 来源: {excel_path}\n\n")
-
-            for idx, (case_id, node) in enumerate(yaml_data.items()):
-                dump = yaml.dump(
-                    {case_id: node},
-                    default_flow_style=False,
-                    allow_unicode=True,
-                    sort_keys=False,
-                    indent=2,
-                    width=120,
-                )
-                f.write(dump)
-                if idx < len(yaml_data) - 1:
-                    f.write("\n")
+        _write_yaml(filepath, yaml_data, sheet_name, excel_path)
 
         count = len(yaml_data)
         total_count += count
-        print(f"  [OK] {mod_name}: {count} 个用例 → {filepath}")
+        print(f"  [OK] {sheet_name}: {count} 例 → {filepath.name}")
 
-    print(f"\n  共生成 {total_count} 个用例，{len(modules)} 个 YAML 文件")
+    # ── 生成合并版 YAML（按分组）──
+    for group_name, group_sheets in MODULE_GROUPS.items():
+        merged = {}
+        for sheet_name in group_sheets:
+            if sheet_name in all_module_cases:
+                merged.update(all_module_cases[sheet_name])
+        if merged:
+            filepath = output_dir / f"{group_name}_data.yaml"
+            _write_yaml(filepath, merged, f"{group_name} 模块合集", excel_path)
+            print(f"  [OK] 合并版 {group_name}: {len(merged)} 例 → {filepath.name}")
 
-    # ── 同时生成合并版 auth_data.yaml（兼容旧引用）──
-    all_data = {}
-    for mod_name, mod_cases in modules.items():
-        for case in mod_cases:
-            case_id = case["用例ID"]
+    print(f"\n  共生成 {total_count} 个用例，{len(wb.sheetnames)} 个 sheet")
 
-            expected = {}
-            if case["预期errno"] != "":
-                expected["errno"] = int(case["预期errno"]) if str(case["预期errno"]).isdigit() else case["预期errno"]
-            if case["预期errno不为"] != "":
-                expected["errno_not"] = int(case["预期errno不为"]) if str(case["预期errno不为"]).isdigit() else case["预期errno不为"]
-            if case["预期errmsg"] != "":
-                expected["errmsg"] = str(case["预期errmsg"])
-            if case["预期errmsg包含"] != "":
-                expected["errmsg_contains"] = str(case["预期errmsg包含"])
 
-            req_body = case["请求体"]
-            request = None
-            if req_body and req_body.strip():
-                try:
-                    request = json.loads(req_body)
-                except json.JSONDecodeError:
-                    request = {"_raw": req_body}
-
-            node = {
-                "description": str(case["用例描述"]),
-                "module": str(case["模块"]),
-                "priority": str(case["优先级"]),
-                "method": str(case["请求方法"]).upper(),
-                "need_auth": str(case["需要认证"]) in ("是", "true", "True"),
-                "endpoint": str(case["接口路径"]),
-                "expected": expected,
-            }
-
-            req_params = str(case["请求参数"])
-            if req_params:
-                node["params"] = req_params
-
-            if request:
-                node["request"] = request
-            if str(case["预期data有值"]) in ("是", "true", "True"):
-                node["expected"]["has_data"] = True
-            if str(case["预期data字段"]):
-                node["expected"]["fields"] = [f.strip() for f in str(case["预期data字段"]).split(",") if f.strip()]
-
-            all_data[case_id] = node
-
-    filepath_all = output_dir / "auth_data.yaml"
-    with open(filepath_all, "w", encoding="utf-8") as f:
-        f.write("# Litemall 认证模块 全部测试数据（合并版）\n")
-        f.write("# 由 scripts/excel_to_yaml.py 自动生成\n\n")
-        for idx, (case_id, node) in enumerate(all_data.items()):
-            dump = yaml.dump({case_id: node}, default_flow_style=False, allow_unicode=True, sort_keys=False, indent=2, width=120)
+def _write_yaml(filepath: Path, data: dict, label: str, source: str):
+    """写 YAML 文件"""
+    with open(filepath, "w", encoding="utf-8") as f:
+        f.write(f"# Litemall {label} 测试数据\n")
+        f.write(f"# 由 scripts/excel_to_yaml.py 自动生成\n")
+        f.write(f"# 来源: {source}\n\n")
+        for idx, (case_id, node) in enumerate(data.items()):
+            dump = yaml.dump(
+                {case_id: node},
+                default_flow_style=False,
+                allow_unicode=True,
+                sort_keys=False,
+                indent=2,
+                width=120,
+            )
             f.write(dump)
-            if idx < len(all_data) - 1:
+            if idx < len(data) - 1:
                 f.write("\n")
-    print(f"  [OK] 合并版: {total_count} 个用例 → {filepath_all}")
+
+
+def _sheet_to_filename(name: str) -> str:
+    """fallback: 中文 sheet 名 → 英文文件名"""
+    import re
+    # 简单处理：去除非字母数字，转小写
+    result = re.sub(r'[^\w]', '_', name).lower()
+    result = re.sub(r'_+', '_', result).strip('_')
+    return result + "_data" if result else "module_data"
 
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    excel_file = args[0] if args else "test_design/auth_module_testcases.xlsx"
+    excel_file = args[0] if args else "test_design/litemall_testcases.xlsx"
     output = args[1] if len(args) > 1 else "tests/test_data"
 
     excel_path = Path(excel_file)
@@ -227,5 +222,5 @@ if __name__ == "__main__":
         sys.exit(1)
 
     print(f"Excel: {excel_path}")
-    print(f"Output: {output}")
+    print(f"Output: {output}\n")
     excel_to_yaml(str(excel_path), output)

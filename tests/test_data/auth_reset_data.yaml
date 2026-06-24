@@ -1,20 +1,19 @@
-# Litemall 密码重置模块 测试数据
+# Litemall 密码重置 测试数据
 # 由 scripts/excel_to_yaml.py 自动生成
-# 来源: D:\litemall-api-test\test_design\auth_module_testcases.xlsx
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
 
-reset_empty_mobile:
-  description: 空手机号重置（应拒绝）
+reset_with_valid_data:
+  description: 有效数据重置密码
   module: 密码重置
   priority: P2
   method: POST
   need_auth: false
   endpoint: /wx/auth/reset
   expected:
-    errno_not: 0
     has_data: false
   request:
     password: NewPass123!
-    mobile: ''
+    mobile: '13800138001'
     code: '1234'
 
 reset_empty_password:
@@ -32,16 +31,17 @@ reset_empty_password:
     mobile: '13800138001'
     code: '1234'
 
-reset_with_valid_data:
-  description: 有效数据重置密码
+reset_empty_mobile:
+  description: 空手机号重置（应拒绝）
   module: 密码重置
   priority: P2
   method: POST
   need_auth: false
   endpoint: /wx/auth/reset
   expected:
+    errno_not: 0
     has_data: false
   request:
     password: NewPass123!
-    mobile: '13800138001'
+    mobile: ''
     code: '1234'
