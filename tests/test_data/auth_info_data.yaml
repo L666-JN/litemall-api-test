@@ -1,0 +1,43 @@
+# Litemall 用户信息模块 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\auth_module_testcases.xlsx
+
+user_info_invalid_token:
+  description: 带伪造的无效token获取用户信息（应拒绝）
+  module: 用户信息
+  priority: P1
+  method: GET
+  need_auth: false
+  endpoint: /wx/auth/info
+  expected:
+    errno: 501
+    has_data: false
+
+user_info_no_token:
+  description: 不带token获取用户信息（应拒绝）
+  module: 用户信息
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/auth/info
+  expected:
+    errno: 501
+    errmsg: 请登录
+    has_data: false
+
+user_info_with_token:
+  description: 带有效token获取用户信息
+  module: 用户信息
+  priority: P0
+  method: GET
+  need_auth: true
+  endpoint: /wx/auth/info
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: true
+    fields:
+    - nickName
+    - avatar
+    - gender
+    - mobile

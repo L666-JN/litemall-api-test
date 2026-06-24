@@ -13,7 +13,7 @@
 ```bash
 python run_tests.py                  # 全部测试（自动检查后端连通性 → 运行 → 输出报告）
 python run_tests.py -k auth          # 认证模块
-python run_tests.py -k shopping      # 下单业务流
+python run_tests.py -k login         # 登录用例
 python run_tests.py -m smoke         # 冒烟测试
 python run_tests.py -m smoke -n 4    # 4 线程并行冒烟
 python run_tests.py --cov            # 带覆盖率
@@ -37,7 +37,6 @@ pytest -v
 
 # 运行单个测试文件
 pytest tests/test_litemall_auth.py -v
-pytest tests/test_shopping_flow.py -v
 
 # 按名称运行单个测试
 pytest -k "test_login[login_success]" -v
@@ -98,15 +97,20 @@ class TestLitemallLogin:
 
 新增测试用例只需在 YAML 文件中添加数据节点、并将其 key 加入 parametrize 列表即可，无需修改测试代码。
 
-### 业务流测试 — 通过类变量在步骤间传递状态
+### 用例设计流程 — Excel → YAML → 参数化测试
 
-`TestShoppingFlow`（`tests/test_shopping_flow.py`）执行一个 8 步的下单流程。步骤通过方法名排序（`test_01_`、`test_02_`、…、`test_08_`）。中间结果（`goods_id`、`product_id`、`address_id`、`order_id`）存储在类级别属性中，供后续步骤读取：
+测试用例先在 Excel 中设计，再转换为 YAML，最后通过 pytest parametrize 执行：
 
 ```
-home/index → goods/detail → address/save → cart/add → cart/checkout → order/submit → order/list → order/detail
+test_design/<模块>_testcases.xlsx          ← 用例设计文档（源，方便评审）
+    ↓ scripts/generate_<模块>_excel.py     ← 生成 Excel 的脚本
+    ↓ scripts/excel_to_yaml.py             ← Excel → YAML 转换
+tests/test_data/<模块>_data.yaml           ← 测试数据（代码读取）
+    ↓ conftest.py fixture
+tests/test_litemall_<模块>.py             ← 参数化测试
 ```
 
-**注意**：部分步骤使用 `api_client`（无需认证），部分使用 `authenticated_client`。fixture 的选择在每个测试方法的参数中决定。
+每个模块的测试数据拆分为独立 YAML 文件（如 `auth_login_data.yaml`、`auth_register_data.yaml`），conftest.py 中注册对应 fixture。
 
 ### 自定义断言
 
@@ -126,10 +130,12 @@ home/index → goods/detail → address/save → cart/add → cart/checkout → 
 
 ## 新增测试模块
 
-1. 在 `tests/test_data/` 中创建 `<模块名>_data.yaml` 测试数据文件
-2. 在 `tests/conftest.py` 中添加调用 `test_data.load_yaml('<模块名>_data')` 的 fixture
-3. 在 `tests/` 中创建 `test_litemall_<模块名>.py` 测试文件，使用参数化测试类
-4. 如需新增端点，在 `config/endpoints.py` 中添加对应常量
+1. 在 `test_design/` 中设计 Excel 用例（或直接编辑对应的 `scripts/generate_<模块>_excel.py`）
+2. 运行 `python scripts/generate_<模块>_excel.py` 生成/更新 Excel
+3. 运行 `python scripts/excel_to_yaml.py` 生成 YAML 测试数据
+4. 在 `tests/conftest.py` 中添加调用 `test_data.load_yaml('<模块>_data')` 的 fixture
+5. 在 `tests/` 中创建 `test_litemall_<模块>.py` 测试文件，使用参数化测试类
+6. 如需新增端点，在 `config/endpoints.py` 中添加对应常量
 
 ## CI
 

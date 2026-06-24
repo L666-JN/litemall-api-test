@@ -5,13 +5,13 @@ pytest 配置文件 - 定义 fixtures 和 hooks
 import pytest
 import sys
 from pathlib import Path
-from typing import Any, Dict, Generator
+from typing import Dict
 
 # 添加项目根目录到 Python 路径
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from utils.api_client import APIClient
-from utils.test_data_manager import get_test_data_manager
+from utils.test_data_manager import TestDataManager, get_test_data_manager
 from utils.logger import get_logger
 from config.settings import get_settings
 
@@ -19,29 +19,29 @@ from config.settings import get_settings
 logger = get_logger(__name__)
 
 
-# ========== Fixtures ==========
+# ========== 基础 Fixtures ==========
 
 @pytest.fixture(scope='session')
 def api_client() -> APIClient:
     """
-    API 客户端 fixture（会话级别）
+    API 客户端 fixture（会话级别，不携带 token）
 
     Yields:
         APIClient 实例
     """
     client = APIClient()
-    logger.info("创建 API 客户端")
+    logger.info("创建 API 客户端（未认证）")
     yield client
     client.close()
     logger.info("关闭 API 客户端")
 
 
 @pytest.fixture(scope='function')
-def test_data() -> get_test_data_manager:
+def test_data() -> TestDataManager:
     """
     测试数据管理器 fixture
 
-    Yields:
+    Returns:
         TestDataManager 实例
     """
     return get_test_data_manager()
@@ -49,99 +49,81 @@ def test_data() -> get_test_data_manager:
 
 @pytest.fixture(scope='function')
 def base_url() -> str:
-    """
-    基础 URL fixture
-
-    Returns:
-        API 基础 URL
-    """
+    """API 基础 URL"""
     return get_settings().get_base_url()
 
 
 @pytest.fixture(scope='function')
 def headers() -> Dict[str, str]:
-    """
-    请求头 fixture
-
-    Returns:
-        请求头字典
-    """
+    """请求头字典"""
     return get_settings().get_headers()
 
 
 @pytest.fixture(scope='function')
-def auth_headers() -> Dict[str, str]:
-    """
-    带认证的请求头 fixture
-
-    Returns:
-        带认证令牌的请求头字典
-    """
-    return get_settings().get_headers(with_auth=True)
-
-
-@pytest.fixture(scope='function')
 def timeout() -> int:
-    """
-    超时时间 fixture
-
-    Returns:
-        超时时间（秒）
-    """
+    """超时时间（秒）"""
     return get_settings().TIMEOUT
 
 
-# ========== 数据驱动测试 Fixtures ==========
+# ========== 认证模块数据 Fixtures ==========
 
 @pytest.fixture(scope='function')
-def auth_data(test_data) -> dict:
-    """
-    认证模块测试数据 fixture
+def auth_login_data(test_data: TestDataManager) -> dict:
+    """登录模块测试数据"""
+    return test_data.load_yaml('auth_login_data')
 
-    Args:
-        test_data: 测试数据管理器
 
-    Returns:
-        认证测试数据
-    """
+@pytest.fixture(scope='function')
+def auth_logout_data(test_data: TestDataManager) -> dict:
+    """登出模块测试数据"""
+    return test_data.load_yaml('auth_logout_data')
+
+
+@pytest.fixture(scope='function')
+def auth_info_data(test_data: TestDataManager) -> dict:
+    """用户信息模块测试数据"""
+    return test_data.load_yaml('auth_info_data')
+
+
+@pytest.fixture(scope='function')
+def auth_register_data(test_data: TestDataManager) -> dict:
+    """注册模块测试数据"""
+    return test_data.load_yaml('auth_register_data')
+
+
+@pytest.fixture(scope='function')
+def auth_reset_data(test_data: TestDataManager) -> dict:
+    """密码重置模块测试数据"""
+    return test_data.load_yaml('auth_reset_data')
+
+
+# ========== 兼容旧引用的合并数据 Fixture ==========
+
+@pytest.fixture(scope='function')
+def auth_data(test_data: TestDataManager) -> dict:
+    """认证模块全部测试数据（合并版，兼容旧引用）"""
     return test_data.load_yaml('auth_data')
 
 
-@pytest.fixture(scope='function')
-def shopping_data(test_data) -> dict:
-    """
-    购物流程测试数据 fixture
-
-    Args:
-        test_data: 测试数据管理器
-
-    Returns:
-        购物流程测试数据
-    """
-    return test_data.load_yaml('shopping_flow')
-
-
-# ========== 参数化测试数据 ==========
-
-
-# ========== 认证夹具 ==========
+# ========== 认证客户端 Fixture ==========
 
 @pytest.fixture(scope='function')
-def authenticated_client(auth_data: dict) -> APIClient:
+def authenticated_client(auth_login_data: dict) -> APIClient:
     """
     已认证的 API 客户端 fixture
 
-    自动登录并设置 X-Litemall-Token，后续请求无需手动传 token。
+    自动使用 login_success 用例的凭据登录并设置 token，
+    后续请求无需手动传 token。
 
     Args:
-        auth_data: 认证测试数据
+        auth_login_data: 登录测试数据
 
     Yields:
         已设置 token 的 APIClient 实例
     """
     client = APIClient()
-    login_case = auth_data["login_success"]
-    login_resp = client.post("/wx/auth/login", json=login_case["request"])
+    login_case = auth_login_data["login_success"]
+    login_resp = client.post(login_case["endpoint"], json=login_case["request"])
     token = login_resp.data["token"]
     client.set_token(token)
     logger.info("已创建认证客户端")
@@ -153,45 +135,39 @@ def authenticated_client(auth_data: dict) -> APIClient:
 # ========== Hooks ==========
 
 def pytest_configure(config):
-    """
-    pytest 配置 hook
-
-    Args:
-        config: pytest 配置对象
-    """
-    # 自定义标记
+    """pytest 配置 hook"""
     config.addinivalue_line('markers', 'smoke: 冒烟测试')
     config.addinivalue_line('markers', 'regression: 回归测试')
     config.addinivalue_line('markers', 'api: API 测试')
     config.addinivalue_line('markers', 'slow: 慢速测试')
+    config.addinivalue_line('markers', 'P0: 最高优先级用例')
+    config.addinivalue_line('markers', 'P1: 高优先级用例')
+    config.addinivalue_line('markers', 'P2: 中优先级用例')
 
 
 def pytest_collection_modifyitems(config, items):
     """
-    修改测试集合 hook - 自动添加标记
-
-    Args:
-        config: pytest 配置对象
-        items: 测试项列表
+    修改测试集合 hook — 按模块文件名自动打标记
     """
     for item in items:
-        # 根据测试文件名自动添加标记
-        if 'test_users' in str(item.fspath):
+        fspath = str(item.fspath)
+
+        # 按测试文件名自动添加模块标记
+        if 'auth' in fspath:
             item.add_marker(pytest.mark.api)
-        elif 'test_products' in str(item.fspath):
+        elif 'shopping' in fspath:
             item.add_marker(pytest.mark.api)
+
+        # 按用例优先级自动打标（从 parametrize 的 case_id 推断）
+        if hasattr(item, 'callspec'):
+            case_id = item.callspec.params.get('case_id', '')
+            if case_id:
+                # 可以在这里根据 case_id 前缀打标记
+                pass
 
 
 def pytest_report_header(config):
-    """
-    自定义测试报告头部
-
-    Args:
-        config: pytest 配置对象
-
-    Returns:
-        报告头部信息
-    """
+    """自定义测试报告头部"""
     settings = get_settings()
     return [
         f"测试环境: {settings.ENV}",
@@ -202,12 +178,7 @@ def pytest_report_header(config):
 
 @pytest.fixture(autouse=True)
 def test_setup_teardown(request):
-    """
-    自动 fixture - 用于每个测试的 setup 和 teardown
-
-    Args:
-        request: pytest 请求对象
-    """
-    logger.info(f"\n========== 开始测试: {request.node.name} ==========")
+    """自动 fixture - 每个测试的 setup 和 teardown 日志"""
+    logger.info(f"\n{'='*10} 开始测试: {request.node.name} {'='*10}")
     yield
-    logger.info(f"========== 结束测试: {request.node.name} ==========\n")
+    logger.info(f"{'='*10} 结束测试: {request.node.name} {'='*10}\n")

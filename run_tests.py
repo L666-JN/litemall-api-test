@@ -6,7 +6,6 @@ Litemall API 自动化测试 — 主入口
     python run_tests.py                      # 全部测试
     python run_tests.py -m smoke             # 冒烟测试
     python run_tests.py -k auth              # 认证模块
-    python run_tests.py -k shopping          # 业务流
     python run_tests.py -m smoke -n 4        # 4 线程并行冒烟
     python run_tests.py --cov               # 带覆盖率
     python run_tests.py --no-report         # 不生成 HTML 报告
@@ -88,7 +87,7 @@ def main():
 示例:
   python run_tests.py                        全部测试
   python run_tests.py -k auth                认证模块
-  python run_tests.py -k shopping            下单业务流
+  python run_tests.py -k register            注册模块
   python run_tests.py -m smoke               冒烟测试
   python run_tests.py -m smoke -n 4          4 线程并行冒烟
   python run_tests.py --cov                  带覆盖率
@@ -99,7 +98,7 @@ def main():
 
     # 测试选择
     group = parser.add_argument_group("测试选择")
-    group.add_argument("-k", "--keyword", help="按关键字过滤测试（如 auth、shopping、login）")
+    group.add_argument("-k", "--keyword", help="按关键字过滤测试（如 auth、login、register）")
     group.add_argument("-m", "--marker", choices=["smoke", "regression", "api", "slow"], help="按标记过滤")
     group.add_argument("-f", "--test-file", help="指定测试文件（如 test_litemall_auth.py）")
 

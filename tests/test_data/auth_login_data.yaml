@@ -1,0 +1,134 @@
+# Litemall 登录模块 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\auth_module_testcases.xlsx
+
+login_empty_both:
+  description: 用户名和密码都为空登录
+  module: 登录
+  priority: P1
+  method: POST
+  need_auth: false
+  endpoint: /wx/auth/login
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    username: ''
+    password: ''
+
+login_empty_password:
+  description: 密码为空登录
+  module: 登录
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/auth/login
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    username: user123
+    password: ''
+
+login_empty_username:
+  description: 用户名为空登录
+  module: 登录
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/auth/login
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    username: ''
+    password: user123
+
+login_nonexistent_user:
+  description: 不存在的用户名登录
+  module: 登录
+  priority: P1
+  method: POST
+  need_auth: false
+  endpoint: /wx/auth/login
+  expected:
+    errno: 700
+    errmsg_contains: 账号不存在
+    has_data: false
+  request:
+    username: no_such_user_999
+    password: '123456'
+
+login_sql_injection:
+  description: SQL注入尝试登录（安全测试）
+  module: 登录
+  priority: P1
+  method: POST
+  need_auth: false
+  endpoint: /wx/auth/login
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    username: admin' OR '1'='1
+    password: admin' OR '1'='1
+
+login_success:
+  description: 正确的用户名和密码登录
+  module: 登录
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/auth/login
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: true
+    fields:
+    - token
+    - userInfo
+    - userInfo.nickName
+  request:
+    username: user123
+    password: user123
+
+login_username_with_spaces:
+  description: 用户名前后带空格登录（边界）
+  module: 登录
+  priority: P2
+  method: POST
+  need_auth: false
+  endpoint: /wx/auth/login
+  expected:
+    has_data: false
+  request:
+    username: '  user123  '
+    password: user123
+
+login_wrong_password:
+  description: 密码错误登录
+  module: 登录
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/auth/login
+  expected:
+    errno: 700
+    has_data: false
+  request:
+    username: user123
+    password: wrong_password
+
+login_xss_attempt:
+  description: XSS脚本注入尝试登录（安全测试）
+  module: 登录
+  priority: P2
+  method: POST
+  need_auth: false
+  endpoint: /wx/auth/login
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    username: <script>alert(1)</script>
+    password: <script>alert(1)</script>
