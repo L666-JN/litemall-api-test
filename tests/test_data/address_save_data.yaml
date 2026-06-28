@@ -1,0 +1,67 @@
+# Litemall 地址保存 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+address_save_unauthorized:
+  description: 未认证保存地址
+  module: 地址保存
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/address/save
+  expected:
+    errno: 501
+    has_data: false
+  request:
+    name: Test
+    tel: '13800138000'
+    province: 北京市
+    city: 北京市
+    county: 东城区
+    addressDetail: 测试路1号
+    areaCode: '110101'
+    isDefault: false
+
+address_save_empty_body:
+  description: 空请求体保存地址
+  module: 地址保存
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/address/save
+  expected:
+    errno: 401
+    has_data: false
+
+address_save_missing_fields:
+  description: 仅传name缺少必填字段
+  module: 地址保存
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/address/save
+  expected:
+    errno: 401
+    has_data: false
+  request:
+    name: test
+
+address_save_update_nonexistent:
+  description: 更新不存在的地址id
+  module: 地址保存
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/address/save
+  expected:
+    errno: 401
+    has_data: false
+  request:
+    id: 99999
+    name: Ghost
+    tel: '13800138000'
+    province: 北京市
+    city: 北京市
+    county: 东城区
+    addressDetail: 不存在
+    areaCode: '110101'

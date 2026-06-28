@@ -1,0 +1,47 @@
+# Litemall 快速添加 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+cart_fastadd_unauthorized:
+  description: 未认证快速添加商品到购物车
+  module: 快速添加
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/cart/fastadd
+  expected:
+    errno: 501
+    has_data: false
+  request:
+    goodsId: 1006002
+    number: 1
+    productId: 7
+
+cart_fastadd_missing_goodsId:
+  description: 缺少goodsId快速添加
+  module: 快速添加
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/fastadd
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    number: 1
+    productId: 7
+
+cart_fastadd_nonexistent_goods:
+  description: 不存在的商品ID快速添加
+  module: 快速添加
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/fastadd
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    goodsId: 999999
+    number: 1
+    productId: 7

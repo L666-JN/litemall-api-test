@@ -1,0 +1,40 @@
+# Litemall 地址删除 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+address_delete_unauthorized:
+  description: 未认证删除地址
+  module: 地址删除
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/address/delete
+  expected:
+    errno: 501
+    has_data: false
+  request:
+    id: 1
+
+address_delete_empty_body:
+  description: 空请求体删除地址
+  module: 地址删除
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/address/delete
+  expected:
+    errno: 401
+    has_data: false
+
+address_delete_nonexistent:
+  description: 删除不存在的地址
+  module: 地址删除
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/address/delete
+  expected:
+    errno: 402
+    has_data: false
+  request:
+    id: 99999

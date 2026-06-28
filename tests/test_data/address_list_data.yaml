@@ -1,0 +1,30 @@
+# Litemall 地址列表 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+address_list_success:
+  description: 认证用户查看地址列表
+  module: 地址列表
+  priority: P0
+  method: GET
+  need_auth: true
+  endpoint: /wx/address/list
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: true
+    fields:
+    - total
+    - pages
+    - list
+
+address_list_unauthorized:
+  description: 未认证查看地址列表
+  module: 地址列表
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/address/list
+  expected:
+    errno: 501
+    has_data: false

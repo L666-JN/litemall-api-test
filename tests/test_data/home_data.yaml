@@ -1,0 +1,38 @@
+# Litemall home 模块合集 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+home_index_success:
+  description: 获取首页数据（新品/热门/专题/品牌等）
+  module: 首页
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/home/index
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: true
+    fields:
+    - newGoodsList
+    - hotGoodsList
+    - banner
+    - channel
+    - brandList
+
+home_about_success:
+  description: 获取关于页面信息
+  module: 首页
+  priority: P1
+  method: GET
+  need_auth: false
+  endpoint: /wx/home/about
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: true
+    fields:
+    - name
+    - address
+    - phone
+    - qq

@@ -1,0 +1,105 @@
+# Litemall 购物车添加 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+cart_add_unauthorized:
+  description: 未认证添加商品到购物车
+  module: 购物车添加
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/cart/add
+  expected:
+    errno: 501
+    has_data: false
+  request:
+    goodsId: 1006002
+    number: 1
+    productId: 7
+
+cart_add_missing_goodsId:
+  description: 缺少goodsId添加购物车
+  module: 购物车添加
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/add
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    number: 1
+    productId: 7
+
+cart_add_missing_productId:
+  description: 缺少productId添加购物车
+  module: 购物车添加
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/add
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    goodsId: 1006002
+    number: 1
+
+cart_add_missing_number:
+  description: 缺少number添加购物车
+  module: 购物车添加
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/add
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    goodsId: 1006002
+    productId: 7
+
+cart_add_zero_number:
+  description: number=0添加购物车
+  module: 购物车添加
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/add
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    goodsId: 1006002
+    number: 0
+    productId: 7
+
+cart_add_nonexistent_goods:
+  description: 不存在的商品ID添加购物车
+  module: 购物车添加
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/add
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    goodsId: 999999
+    number: 1
+    productId: 7
+
+cart_add_nonexistent_product:
+  description: 存在商品但产品规格不存在
+  module: 购物车添加
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/add
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    goodsId: 1006002
+    number: 1
+    productId: 999999

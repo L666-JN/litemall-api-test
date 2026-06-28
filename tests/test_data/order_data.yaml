@@ -1,0 +1,258 @@
+# Litemall order 模块合集 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+order_list_success:
+  description: 认证用户查看订单列表
+  module: 订单列表
+  priority: P0
+  method: GET
+  need_auth: true
+  endpoint: /wx/order/list
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: true
+    fields:
+    - total
+    - pages
+    - list
+
+order_list_unauthorized:
+  description: 未认证查看订单列表
+  module: 订单列表
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/order/list
+  expected:
+    errno: 501
+    has_data: false
+
+order_detail_unauthorized:
+  description: 未认证查看订单详情
+  module: 订单详情
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/order/detail
+  expected:
+    errno: 501
+    has_data: false
+  params: orderId=1
+
+order_detail_missing_id:
+  description: 不传orderId查订单详情
+  module: 订单详情
+  priority: P0
+  method: GET
+  need_auth: true
+  endpoint: /wx/order/detail
+  expected:
+    errno: 402
+    errmsg: orderId不能为null
+    has_data: false
+
+order_detail_nonexistent:
+  description: 不存在的订单id
+  module: 订单详情
+  priority: P1
+  method: GET
+  need_auth: true
+  endpoint: /wx/order/detail
+  expected:
+    errno: 720
+    has_data: false
+  params: orderId=99999
+
+order_submit_unauthorized:
+  description: 未认证提交订单
+  module: 订单提交
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/order/submit
+  expected:
+    errno: 501
+    has_data: false
+  request:
+    cartId: 0
+    addressId: 1
+    couponId: -1
+    userCouponId: -1
+    grouponRulesId: 0
+    message: test
+
+order_submit_empty_body:
+  description: 空请求体提交订单
+  module: 订单提交
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/order/submit
+  expected:
+    errno: 401
+    has_data: false
+
+order_cancel_unauthorized:
+  description: 未认证取消订单
+  module: 订单取消
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/order/cancel
+  expected:
+    errno: 501
+    has_data: false
+  request:
+    orderId: 1
+
+order_cancel_empty_body:
+  description: 空请求体取消订单
+  module: 订单取消
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/order/cancel
+  expected:
+    errno: 401
+    has_data: false
+
+order_cancel_nonexistent:
+  description: 取消不存在的订单
+  module: 订单取消
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/order/cancel
+  expected:
+    errno: 402
+    has_data: false
+  request:
+    orderId: 99999
+
+order_confirm_unauthorized:
+  description: 未认证确认收货
+  module: 确认收货
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/order/confirm
+  expected:
+    errno: 501
+    has_data: false
+  request:
+    orderId: 1
+
+order_confirm_empty_body:
+  description: 空请求体确认收货
+  module: 确认收货
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/order/confirm
+  expected:
+    errno: 401
+    has_data: false
+
+order_delete_unauthorized:
+  description: 未认证删除订单
+  module: 订单删除
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/order/delete
+  expected:
+    errno: 501
+    has_data: false
+  request:
+    orderId: 1
+
+order_delete_empty_body:
+  description: 空请求体删除订单
+  module: 订单删除
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/order/delete
+  expected:
+    errno: 401
+    has_data: false
+
+order_delete_nonexistent:
+  description: 删除不存在的订单
+  module: 订单删除
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/order/delete
+  expected:
+    errno: 401
+    has_data: false
+  request:
+    orderId: 99999
+
+order_comment_unauthorized:
+  description: 未认证订单评价
+  module: 订单评价
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/order/comment
+  expected:
+    errno: 501
+    has_data: false
+  request:
+    orderGoodsId: 1
+    content: 好评
+    star: 5
+    hasPicture: false
+    picUrls: []
+
+order_comment_empty_body:
+  description: 空请求体订单评价
+  module: 订单评价
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/order/comment
+  expected:
+    errno: 401
+    has_data: false
+
+order_goods_unauthorized:
+  description: 未认证查看订单商品
+  module: 订单商品
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/order/goods
+  expected:
+    errno: 501
+    has_data: false
+  params: ogid=1
+
+order_goods_missing_id:
+  description: 不传ogid查订单商品
+  module: 订单商品
+  priority: P0
+  method: GET
+  need_auth: true
+  endpoint: /wx/order/goods
+  expected:
+    errno: 402
+    errmsg: ogid不能为null
+    has_data: false
+
+order_goods_nonexistent:
+  description: 不存在的ogid查订单商品（返回null数据）
+  module: 订单商品
+  priority: P1
+  method: GET
+  need_auth: true
+  endpoint: /wx/order/goods
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: false
+  params: ogid=99999

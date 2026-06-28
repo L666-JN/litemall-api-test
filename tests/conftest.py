@@ -129,6 +129,140 @@ def goods_count_data(test_data: TestDataManager) -> dict:
     return test_data.load_yaml('goods_count_data')
 
 
+# ========== 购物车模块数据 Fixtures ==========
+
+@pytest.fixture(scope='function')
+def cart_index_data(test_data: TestDataManager) -> dict:
+    """购物车列表测试数据"""
+    return test_data.load_yaml('cart_index_data')
+
+
+@pytest.fixture(scope='function')
+def cart_add_data(test_data: TestDataManager) -> dict:
+    """购物车添加测试数据"""
+    return test_data.load_yaml('cart_add_data')
+
+
+@pytest.fixture(scope='function')
+def cart_fastadd_data(test_data: TestDataManager) -> dict:
+    """购物车快速添加测试数据"""
+    return test_data.load_yaml('cart_fastadd_data')
+
+
+@pytest.fixture(scope='function')
+def cart_update_data(test_data: TestDataManager) -> dict:
+    """购物车更新测试数据"""
+    return test_data.load_yaml('cart_update_data')
+
+
+@pytest.fixture(scope='function')
+def cart_checked_data(test_data: TestDataManager) -> dict:
+    """购物车选中测试数据"""
+    return test_data.load_yaml('cart_checked_data')
+
+
+@pytest.fixture(scope='function')
+def cart_delete_data(test_data: TestDataManager) -> dict:
+    """购物车删除测试数据"""
+    return test_data.load_yaml('cart_delete_data')
+
+
+@pytest.fixture(scope='function')
+def cart_count_data(test_data: TestDataManager) -> dict:
+    """购物车数量测试数据"""
+    return test_data.load_yaml('cart_count_data')
+
+
+@pytest.fixture(scope='function')
+def cart_checkout_data(test_data: TestDataManager) -> dict:
+    """购物车结算测试数据"""
+    return test_data.load_yaml('cart_checkout_data')
+
+
+# ========== 地址模块数据 Fixtures ==========
+
+@pytest.fixture(scope='function')
+def address_list_data(test_data: TestDataManager) -> dict:
+    """地址列表测试数据"""
+    return test_data.load_yaml('address_list_data')
+
+
+@pytest.fixture(scope='function')
+def address_detail_data(test_data: TestDataManager) -> dict:
+    """地址详情测试数据"""
+    return test_data.load_yaml('address_detail_data')
+
+
+@pytest.fixture(scope='function')
+def address_save_data(test_data: TestDataManager) -> dict:
+    """地址保存测试数据"""
+    return test_data.load_yaml('address_save_data')
+
+
+@pytest.fixture(scope='function')
+def address_delete_data(test_data: TestDataManager) -> dict:
+    """地址删除测试数据"""
+    return test_data.load_yaml('address_delete_data')
+
+
+# ========== 订单模块数据 Fixtures ==========
+
+@pytest.fixture(scope='function')
+def order_list_data(test_data: TestDataManager) -> dict:
+    """订单列表测试数据"""
+    return test_data.load_yaml('order_list_data')
+
+
+@pytest.fixture(scope='function')
+def order_detail_data(test_data: TestDataManager) -> dict:
+    """订单详情测试数据"""
+    return test_data.load_yaml('order_detail_data')
+
+
+@pytest.fixture(scope='function')
+def order_submit_data(test_data: TestDataManager) -> dict:
+    """订单提交测试数据"""
+    return test_data.load_yaml('order_submit_data')
+
+
+@pytest.fixture(scope='function')
+def order_cancel_data(test_data: TestDataManager) -> dict:
+    """订单取消测试数据"""
+    return test_data.load_yaml('order_cancel_data')
+
+
+@pytest.fixture(scope='function')
+def order_confirm_data(test_data: TestDataManager) -> dict:
+    """确认收货测试数据"""
+    return test_data.load_yaml('order_confirm_data')
+
+
+@pytest.fixture(scope='function')
+def order_delete_data(test_data: TestDataManager) -> dict:
+    """订单删除测试数据"""
+    return test_data.load_yaml('order_delete_data')
+
+
+@pytest.fixture(scope='function')
+def order_comment_data(test_data: TestDataManager) -> dict:
+    """订单评价测试数据"""
+    return test_data.load_yaml('order_comment_data')
+
+
+@pytest.fixture(scope='function')
+def order_goods_data(test_data: TestDataManager) -> dict:
+    """订单商品测试数据"""
+    return test_data.load_yaml('order_goods_data')
+
+
+# ========== 首页模块数据 Fixtures ==========
+
+@pytest.fixture(scope='function')
+def home_data(test_data: TestDataManager) -> dict:
+    """首页测试数据"""
+    return test_data.load_yaml('home_data')
+
+
 # ========== 动态数据 Fixtures ==========
 
 @pytest.fixture(scope='function')
@@ -143,6 +277,93 @@ def valid_category_id(api_client: APIClient, valid_goods_id: int) -> int:
     """从 goods/detail 获取商品所属分类 id"""
     resp = api_client.get(f"/wx/goods/detail", params=f"id={valid_goods_id}")
     return resp.data["info"]["categoryId"]
+
+
+@pytest.fixture(scope='function')
+def valid_address_id(authenticated_client: APIClient) -> int:
+    """从 address/list 动态获取一个有效地址 id"""
+    resp = authenticated_client.get("/wx/address/list")
+    addr_list = resp.data.get("list", []) if isinstance(resp.data, dict) else []
+    if addr_list:
+        return addr_list[0]["id"]
+    # 如果没有地址，创建一个
+    save_resp = authenticated_client.post("/wx/address/save", json={
+        "name": "FixtAddr",
+        "tel": "13800138000",
+        "province": "广东省",
+        "city": "广州市",
+        "county": "天河区",
+        "addressDetail": "测试路100号",
+        "areaCode": "440106",
+        "isDefault": False,
+    })
+    return save_resp.data  # data is the new address id
+
+
+@pytest.fixture(scope='function')
+def valid_order_id(authenticated_client: APIClient) -> int:
+    """从 order/list 动态获取一个有效订单 id（取最新的）"""
+    resp = authenticated_client.get("/wx/order/list")
+    orders = resp.data.get("list", []) if isinstance(resp.data, dict) else []
+    if orders:
+        return orders[0]["id"]
+    raise pytest.skip("没有可用的订单（需要先通过购物车+地址下单）")
+
+
+@pytest.fixture(scope='function')
+def valid_goods_product_pair(api_client: APIClient) -> dict:
+    """
+    获取一个有效的 goodsId -> productId 配对
+
+    从 goods/list 取第一个商品，再用 goods/detail 查其首个 productId，
+    返回 {'goodsId': int, 'productId': int}。
+    """
+    # 获取一个有效商品
+    resp = api_client.get("/wx/goods/list", params="page=1&size=1")
+    goods_id = resp.data["list"][0]["id"]
+
+    # 获取该商品的 productId
+    resp = api_client.get(f"/wx/goods/detail", params=f"id={goods_id}")
+    product_id = resp.data["productList"][0]["id"]
+
+    return {"goodsId": goods_id, "productId": product_id}
+
+
+@pytest.fixture(scope='function')
+def cart_with_item(authenticated_client: APIClient, valid_goods_product_pair: dict) -> dict:
+    """
+    在购物车中创建一个条目，返回条目信息，测试结束后自动清理。
+
+    返回 dict: {'id': int, 'goodsId': int, 'productId': int, ...}
+    """
+    pair = valid_goods_product_pair
+    # 先清空购物车，确保干净起点
+    index_resp = authenticated_client.get("/wx/cart/index")
+    for item in index_resp.data.get("cartList", []):
+        authenticated_client.post("/wx/cart/delete",
+                                  json={"productIds": [item["productId"]]})
+
+    # 添加商品到购物车
+    add_resp = authenticated_client.post("/wx/cart/add", json={
+        "goodsId": pair["goodsId"],
+        "number": 2,
+        "productId": pair["productId"],
+    })
+    assert add_resp.ok, f"cart_with_item 加购失败: errno={add_resp.errno}, errmsg={add_resp.errmsg}"
+
+    # 获取购物车条目详情
+    index_resp = authenticated_client.get("/wx/cart/index")
+    cart_list = index_resp.data["cartList"]
+    assert len(cart_list) > 0, "cart_with_item: 购物车为空"
+    item = cart_list[0]
+
+    yield item
+
+    # 清理：删除购物车中所有条目
+    index_resp = authenticated_client.get("/wx/cart/index")
+    for it in index_resp.data.get("cartList", []):
+        authenticated_client.post("/wx/cart/delete",
+                                  json={"productIds": [it["productId"]]})
 
 
 # ========== 兼容旧引用的合并数据 Fixture ==========

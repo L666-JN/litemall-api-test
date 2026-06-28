@@ -1,0 +1,27 @@
+# Litemall 购物车数量 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+cart_count_no_auth:
+  description: 未认证查询购物车数量（公开接口返回0）
+  module: 购物车数量
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/cart/goodscount
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: true
+
+cart_count_success:
+  description: 认证用户查询购物车商品数量
+  module: 购物车数量
+  priority: P0
+  method: GET
+  need_auth: true
+  endpoint: /wx/cart/goodscount
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: true

@@ -29,12 +29,39 @@ SHEET_TO_FILE = {
     "商品分类": "goods_category_data",
     "相关商品": "goods_related_data",
     "商品统计": "goods_count_data",
+    "购物车列表": "cart_index_data",
+    "购物车添加": "cart_add_data",
+    "快速添加": "cart_fastadd_data",
+    "购物车更新": "cart_update_data",
+    "购物车选中": "cart_checked_data",
+    "购物车删除": "cart_delete_data",
+    "购物车数量": "cart_count_data",
+    "购物车结算": "cart_checkout_data",
+    "地址列表": "address_list_data",
+    "地址详情": "address_detail_data",
+    "地址保存": "address_save_data",
+    "地址删除": "address_delete_data",
+    "订单列表": "order_list_data",
+    "订单详情": "order_detail_data",
+    "订单提交": "order_submit_data",
+    "订单取消": "order_cancel_data",
+    "确认收货": "order_confirm_data",
+    "订单删除": "order_delete_data",
+    "订单评价": "order_comment_data",
+    "订单商品": "order_goods_data",
+    "首页": "home_data",
 }
 
 # 模块分组（用于生成合并版 YAML）
 MODULE_GROUPS = {
     "auth":  ["登录", "登出", "用户信息", "注册", "密码重置"],
     "goods": ["商品列表", "商品详情", "商品分类", "相关商品", "商品统计"],
+    "cart":  ["购物车列表", "购物车添加", "快速添加", "购物车更新",
+              "购物车选中", "购物车删除", "购物车数量", "购物车结算"],
+    "address": ["地址列表", "地址详情", "地址保存", "地址删除"],
+    "order": ["订单列表", "订单详情", "订单提交", "订单取消",
+              "确认收货", "订单删除", "订单评价", "订单商品"],
+    "home": ["首页"],
 }
 
 # 表头列名（固定）

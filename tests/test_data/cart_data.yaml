@@ -1,0 +1,330 @@
+# Litemall cart 模块合集 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+cart_index_success:
+  description: 认证用户查看购物车列表
+  module: 购物车列表
+  priority: P0
+  method: GET
+  need_auth: true
+  endpoint: /wx/cart/index
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: true
+    fields:
+    - cartTotal
+    - cartList
+
+cart_index_unauthorized:
+  description: 未认证查看购物车列表
+  module: 购物车列表
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/cart/index
+  expected:
+    errno: 501
+    has_data: false
+
+cart_add_unauthorized:
+  description: 未认证添加商品到购物车
+  module: 购物车添加
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/cart/add
+  expected:
+    errno: 501
+    has_data: false
+  request:
+    goodsId: 1006002
+    number: 1
+    productId: 7
+
+cart_add_missing_goodsId:
+  description: 缺少goodsId添加购物车
+  module: 购物车添加
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/add
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    number: 1
+    productId: 7
+
+cart_add_missing_productId:
+  description: 缺少productId添加购物车
+  module: 购物车添加
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/add
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    goodsId: 1006002
+    number: 1
+
+cart_add_missing_number:
+  description: 缺少number添加购物车
+  module: 购物车添加
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/add
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    goodsId: 1006002
+    productId: 7
+
+cart_add_zero_number:
+  description: number=0添加购物车
+  module: 购物车添加
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/add
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    goodsId: 1006002
+    number: 0
+    productId: 7
+
+cart_add_nonexistent_goods:
+  description: 不存在的商品ID添加购物车
+  module: 购物车添加
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/add
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    goodsId: 999999
+    number: 1
+    productId: 7
+
+cart_add_nonexistent_product:
+  description: 存在商品但产品规格不存在
+  module: 购物车添加
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/add
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    goodsId: 1006002
+    number: 1
+    productId: 999999
+
+cart_fastadd_unauthorized:
+  description: 未认证快速添加商品到购物车
+  module: 快速添加
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/cart/fastadd
+  expected:
+    errno: 501
+    has_data: false
+  request:
+    goodsId: 1006002
+    number: 1
+    productId: 7
+
+cart_fastadd_missing_goodsId:
+  description: 缺少goodsId快速添加
+  module: 快速添加
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/fastadd
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    number: 1
+    productId: 7
+
+cart_fastadd_nonexistent_goods:
+  description: 不存在的商品ID快速添加
+  module: 快速添加
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/fastadd
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    goodsId: 999999
+    number: 1
+    productId: 7
+
+cart_update_unauthorized:
+  description: 未认证更新购物车商品数量
+  module: 购物车更新
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/cart/update
+  expected:
+    errno: 501
+    has_data: false
+  request:
+    id: 1
+    number: 3
+    goodsId: 1006002
+    productId: 7
+
+cart_update_missing_goodsId:
+  description: 缺少goodsId更新购物车
+  module: 购物车更新
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/update
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    id: 1
+    number: 3
+    productId: 7
+
+cart_update_nonexistent:
+  description: 更新不存在的购物车条目
+  module: 购物车更新
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/update
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    id: 99999
+    number: 3
+    goodsId: 1006002
+    productId: 7
+
+cart_checked_unauthorized:
+  description: 未认证变更购物车选中状态
+  module: 购物车选中
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/cart/checked
+  expected:
+    errno: 501
+    has_data: false
+  request:
+    isChecked: 1
+    productIds:
+    - 7
+
+cart_checked_nonexistent_product:
+  description: 选中不存在的productId（无操作返回成功）
+  module: 购物车选中
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/checked
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: true
+  request:
+    isChecked: 1
+    productIds:
+    - 999999
+
+cart_delete_unauthorized:
+  description: 未认证删除购物车商品
+  module: 购物车删除
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/cart/delete
+  expected:
+    errno: 501
+    has_data: false
+  request:
+    productIds:
+    - 7
+
+cart_delete_nonexistent_product:
+  description: 删除不存在的productId（无操作返回成功）
+  module: 购物车删除
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/delete
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: true
+  request:
+    productIds:
+    - 999999
+
+cart_count_no_auth:
+  description: 未认证查询购物车数量（公开接口返回0）
+  module: 购物车数量
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/cart/goodscount
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: true
+
+cart_count_success:
+  description: 认证用户查询购物车商品数量
+  module: 购物车数量
+  priority: P0
+  method: GET
+  need_auth: true
+  endpoint: /wx/cart/goodscount
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: true
+
+cart_checkout_unauthorized:
+  description: 未认证购物车结算
+  module: 购物车结算
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/cart/checkout
+  expected:
+    errno: 501
+    has_data: false
+  params: cartId=0&addressId=0&couponId=0&userCouponId=0&grouponRulesId=0
+
+cart_checkout_default_params:
+  description: 默认参数购物车结算（空购物车也有结算数据）
+  module: 购物车结算
+  priority: P1
+  method: GET
+  need_auth: true
+  endpoint: /wx/cart/checkout
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: true

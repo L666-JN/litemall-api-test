@@ -1,0 +1,40 @@
+# Litemall 订单删除 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+order_delete_unauthorized:
+  description: 未认证删除订单
+  module: 订单删除
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/order/delete
+  expected:
+    errno: 501
+    has_data: false
+  request:
+    orderId: 1
+
+order_delete_empty_body:
+  description: 空请求体删除订单
+  module: 订单删除
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/order/delete
+  expected:
+    errno: 401
+    has_data: false
+
+order_delete_nonexistent:
+  description: 删除不存在的订单
+  module: 订单删除
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/order/delete
+  expected:
+    errno: 401
+    has_data: false
+  request:
+    orderId: 99999

@@ -1,0 +1,31 @@
+# Litemall 订单评价 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+order_comment_unauthorized:
+  description: 未认证订单评价
+  module: 订单评价
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/order/comment
+  expected:
+    errno: 501
+    has_data: false
+  request:
+    orderGoodsId: 1
+    content: 好评
+    star: 5
+    hasPicture: false
+    picUrls: []
+
+order_comment_empty_body:
+  description: 空请求体订单评价
+  module: 订单评价
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/order/comment
+  expected:
+    errno: 401
+    has_data: false

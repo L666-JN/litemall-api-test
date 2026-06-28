@@ -19,9 +19,17 @@
 │   ├── conftest.py              # fixtures & hooks
 │   ├── test_data/               # YAML 测试数据（由 Excel 自动生成）
 │   │   ├── auth_*_data.yaml     # 认证模块（登录/登出/信息/注册/重置）
-│   │   └── goods_*_data.yaml    # 商品模块（列表/详情/分类/相关/统计）
+│   │   ├── goods_*_data.yaml    # 商品模块（列表/详情/分类/相关/统计）
+│   │   ├── cart_*_data.yaml     # 购物车模块（列表/添加/更新/选中/删除/数量/结算）
+│   │   ├── address_*_data.yaml  # 地址模块（列表/详情/保存/删除）
+│   │   ├── order_*_data.yaml    # 订单模块（列表/详情/提交/取消/确认/删除/评价/商品）
+│   │   └── home_data.yaml       # 首页模块（index / about）
 │   ├── test_litemall_auth.py    # 认证模块（25 例）
-│   └── test_litemall_goods.py   # 商品模块（19 例）
+│   ├── test_litemall_goods.py   # 商品模块（19 例）
+│   ├── test_litemall_cart.py    # 购物车模块（29 例）
+│   ├── test_litemall_address.py # 地址模块（16 例）
+│   ├── test_litemall_order.py   # 订单模块（23 例）
+│   └── test_litemall_home.py    # 首页模块（2 例）
 ├── test_design/
 │   └── litemall_testcases.xlsx  # 用例设计 Excel（每个模块一个 sheet）
 ├── scripts/
@@ -49,7 +57,29 @@
 | 商品分类 | `test_litemall_goods.py` | 3 | `/wx/goods/category` |
 | 相关商品 | `test_litemall_goods.py` | 3 | `/wx/goods/related` |
 | 商品统计 | `test_litemall_goods.py` | 1 | `/wx/goods/count` |
-| **合计** | | **44** | **15 个端点** |
+| 购物车列表 | `test_litemall_cart.py` | 2 | `/wx/cart/index` |
+| 购物车添加 | `test_litemall_cart.py` | 8 | `/wx/cart/add` |
+| 快速添加 | `test_litemall_cart.py` | 4 | `/wx/cart/fastadd` |
+| 购物车更新 | `test_litemall_cart.py` | 4 | `/wx/cart/update` |
+| 购物车选中 | `test_litemall_cart.py` | 3 | `/wx/cart/checked` |
+| 购物车删除 | `test_litemall_cart.py` | 3 | `/wx/cart/delete` |
+| 购物车数量 | `test_litemall_cart.py` | 2 | `/wx/cart/goodscount` |
+| 购物车结算 | `test_litemall_cart.py` | 3 | `/wx/cart/checkout` |
+| 地址列表 | `test_litemall_address.py` | 2 | `/wx/address/list` |
+| 地址详情 | `test_litemall_address.py` | 4 | `/wx/address/detail` |
+| 地址保存 | `test_litemall_address.py` | 6 | `/wx/address/save` |
+| 地址删除 | `test_litemall_address.py` | 4 | `/wx/address/delete` |
+| 订单列表 | `test_litemall_order.py` | 2 | `/wx/order/list` |
+| 订单详情 | `test_litemall_order.py` | 4 | `/wx/order/detail` |
+| 订单提交 | `test_litemall_order.py` | 2 | `/wx/order/submit` |
+| 订单取消 | `test_litemall_order.py` | 3 | `/wx/order/cancel` |
+| 确认收货 | `test_litemall_order.py` | 2 | `/wx/order/confirm` |
+| 订单删除 | `test_litemall_order.py` | 4 | `/wx/order/delete` |
+| 订单评价 | `test_litemall_order.py` | 2 | `/wx/order/comment` |
+| 订单商品 | `test_litemall_order.py` | 4 | `/wx/order/goods` |
+| 首页数据 | `test_litemall_home.py` | 1 | `/wx/home/index` |
+| 关于页面 | `test_litemall_home.py` | 1 | `/wx/home/about` |
+| **合计** | | **114** | **32 个端点** |
 
 ## 环境要求
 
@@ -82,6 +112,9 @@ pytest -v
 python run_tests.py                  # 全部测试
 python run_tests.py -k auth          # 认证模块
 python run_tests.py -k goods         # 商品模块
+python run_tests.py -k cart          # 购物车模块
+python run_tests.py -k address       # 地址模块
+python run_tests.py -k order         # 订单模块
 python run_tests.py -m smoke         # 冒烟测试
 python run_tests.py -m smoke -n 4    # 4 线程并行
 
@@ -89,6 +122,9 @@ python run_tests.py -m smoke -n 4    # 4 线程并行
 pytest -v                                    # 全部测试
 pytest tests/test_litemall_auth.py -v        # 认证模块
 pytest tests/test_litemall_goods.py -v       # 商品模块
+pytest tests/test_litemall_cart.py -v        # 购物车模块
+pytest tests/test_litemall_address.py -v    # 地址模块
+pytest tests/test_litemall_order.py -v      # 订单模块
 pytest -k "login" -v                         # 按关键字过滤
 pytest -k "goods_list" -v                    # 按用例名过滤
 ```
@@ -204,28 +240,28 @@ def test_detail_valid(self, api_client, valid_goods_id):
 
 | 模块 | 端点 | 状态 | 模块 | 端点 | 状态 |
 |------|------|:--:|------|------|:--:|
-| 认证 | `/wx/auth/login` | ✓ | 购物车 | `/wx/cart/index` | ✗ |
-| | `/wx/auth/logout` | ✓ | | `/wx/cart/add` | ✗ |
-| | `/wx/auth/info` | ✓ | | `/wx/cart/fastadd` | ✗ |
-| | `/wx/auth/register` | ✓ | | `/wx/cart/update` | ✗ |
-| | `/wx/auth/regCaptcha` | ✗ | | `/wx/cart/checked` | ✗ |
-| | `/wx/auth/reset` | ✓ | | `/wx/cart/delete` | ✗ |
-| | `/wx/auth/profile` | ✗ | | `/wx/cart/goodscount` | ✗ |
-| 首页 | `/wx/home/index` | ✗ | | `/wx/cart/checkout` | ✗ |
-| | `/wx/home/about` | ✗ | 地址 | `/wx/address/list` | ✗ |
-| 商品 | `/wx/goods/list` | ✓ | | `/wx/address/detail` | ✗ |
-| | `/wx/goods/detail` | ✓ | | `/wx/address/save` | ✗ |
-| | `/wx/goods/category` | ✓ | | `/wx/address/delete` | ✗ |
-| | `/wx/goods/related` | ✓ | 订单 | `/wx/order/list` | ✗ |
-| | `/wx/goods/count` | ✓ | | `/wx/order/detail` | ✗ |
-| | | | | `/wx/order/submit` | ✗ |
-| | | | | `/wx/order/cancel` | ✗ |
-| | | | | `/wx/order/confirm` | ✗ |
-| | | | | `/wx/order/delete` | ✗ |
-| | | | | `/wx/order/comment` | ✗ |
-| | | | | `/wx/order/goods` | ✗ |
+| 认证 | `/wx/auth/login` | ✓ | 购物车 | `/wx/cart/index` | ✓ |
+| | `/wx/auth/logout` | ✓ | | `/wx/cart/add` | ✓ |
+| | `/wx/auth/info` | ✓ | | `/wx/cart/fastadd` | ✓ |
+| | `/wx/auth/register` | ✓ | | `/wx/cart/update` | ✓ |
+| | `/wx/auth/regCaptcha` | ✗ | | `/wx/cart/checked` | ✓ |
+| | `/wx/auth/reset` | ✓ | | `/wx/cart/delete` | ✓ |
+| | `/wx/auth/profile` | ✗ | | `/wx/cart/goodscount` | ✓ |
+| 首页 | `/wx/home/index` | ✓ | | `/wx/cart/checkout` | ✓ |
+| | `/wx/home/about` | ✓ | 地址 | `/wx/address/list` | ✓ |
+| 商品 | `/wx/goods/list` | ✓ | | `/wx/address/detail` | ✓ |
+| | `/wx/goods/detail` | ✓ | | `/wx/address/save` | ✓ |
+| | `/wx/goods/category` | ✓ | | `/wx/address/delete` | ✓ |
+| | `/wx/goods/related` | ✓ | 订单 | `/wx/order/list` | ✓ |
+| | `/wx/goods/count` | ✓ | | `/wx/order/detail` | ✓ |
+| | | | | `/wx/order/submit` | ✓ |
+| | | | | `/wx/order/cancel` | ✓ |
+| | | | | `/wx/order/confirm` | ✓ |
+| | | | | `/wx/order/delete` | ✓ |
+| | | | | `/wx/order/comment` | ✓ |
+| | | | | `/wx/order/goods` | ✓ |
 
-覆盖率：**15 / 34 = 44%**
+覆盖率：**32 / 34 = 94%**
 
 ## 新增测试模块
 

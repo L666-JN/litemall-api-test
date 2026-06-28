@@ -1,0 +1,27 @@
+# Litemall 购物车结算 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+cart_checkout_unauthorized:
+  description: 未认证购物车结算
+  module: 购物车结算
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/cart/checkout
+  expected:
+    errno: 501
+    has_data: false
+  params: cartId=0&addressId=0&couponId=0&userCouponId=0&grouponRulesId=0
+
+cart_checkout_default_params:
+  description: 默认参数购物车结算（空购物车也有结算数据）
+  module: 购物车结算
+  priority: P1
+  method: GET
+  need_auth: true
+  endpoint: /wx/cart/checkout
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: true

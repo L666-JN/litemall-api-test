@@ -1,0 +1,50 @@
+# Litemall 购物车更新 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+cart_update_unauthorized:
+  description: 未认证更新购物车商品数量
+  module: 购物车更新
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/cart/update
+  expected:
+    errno: 501
+    has_data: false
+  request:
+    id: 1
+    number: 3
+    goodsId: 1006002
+    productId: 7
+
+cart_update_missing_goodsId:
+  description: 缺少goodsId更新购物车
+  module: 购物车更新
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/update
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    id: 1
+    number: 3
+    productId: 7
+
+cart_update_nonexistent:
+  description: 更新不存在的购物车条目
+  module: 购物车更新
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/update
+  expected:
+    errno_not: 0
+    has_data: false
+  request:
+    id: 99999
+    number: 3
+    goodsId: 1006002
+    productId: 7

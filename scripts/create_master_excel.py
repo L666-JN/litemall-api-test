@@ -50,6 +50,27 @@ COUNTER_MAP = {
     "商品分类": ("TC-GOODS-CAT",  "goods"),
     "相关商品": ("TC-GOODS-REL",  "goods"),
     "商品统计": ("TC-GOODS-CNT",  "goods"),
+    "购物车列表": ("TC-CART-LIST",  "cart"),
+    "购物车添加": ("TC-CART-ADD",  "cart"),
+    "快速添加": ("TC-CART-FADD",  "cart"),
+    "购物车更新": ("TC-CART-UPD",  "cart"),
+    "购物车选中": ("TC-CART-CHK",  "cart"),
+    "购物车删除": ("TC-CART-DEL",  "cart"),
+    "购物车数量": ("TC-CART-CNT",  "cart"),
+    "购物车结算": ("TC-CART-CHOT", "cart"),
+    "地址列表": ("TC-ADDR-LIST",  "address"),
+    "地址详情": ("TC-ADDR-DTL",  "address"),
+    "地址保存": ("TC-ADDR-SAVE", "address"),
+    "地址删除": ("TC-ADDR-DEL",  "address"),
+    "订单列表": ("TC-ORDR-LIST",  "order"),
+    "订单详情": ("TC-ORDR-DTL",  "order"),
+    "订单提交": ("TC-ORDR-SUB",  "order"),
+    "订单取消": ("TC-ORDR-CANC", "order"),
+    "确认收货": ("TC-ORDR-CONF", "order"),
+    "订单删除": ("TC-ORDR-DEL",  "order"),
+    "订单评价": ("TC-ORDR-COMM", "order"),
+    "订单商品": ("TC-ORDR-GOOD", "order"),
+    "首页": ("TC-HOME", "home"),
 }
 
 
@@ -250,6 +271,285 @@ ALL_CASES = [
     ["商品统计", "goods_count_default", "获取商品总数", "P0",
      "/wx/goods/count", "GET", "否", "", "",
      200, 0, "", "成功", "", "是", ""],
+
+    # ── 购物车列表 ──
+    ["购物车列表", "cart_index_success", "认证用户查看购物车列表", "P0",
+     "/wx/cart/index", "GET", "是", "", "",
+     200, 0, "", "成功", "", "是", "cartTotal, cartList"],
+
+    ["购物车列表", "cart_index_unauthorized", "未认证查看购物车列表", "P0",
+     "/wx/cart/index", "GET", "否", "", "",
+     200, 501, "", "", "", "否", ""],
+
+    # ── 购物车添加 ──
+    ["购物车添加", "cart_add_unauthorized", "未认证添加商品到购物车", "P0",
+     "/wx/cart/add", "POST", "否", "",
+     '{"goodsId": 1006002, "number": 1, "productId": 7}',
+     200, 501, "", "", "", "否", ""],
+
+    ["购物车添加", "cart_add_missing_goodsId", "缺少goodsId添加购物车", "P1",
+     "/wx/cart/add", "POST", "是", "",
+     '{"number": 1, "productId": 7}',
+     200, "", "0", "", "", "否", ""],
+
+    ["购物车添加", "cart_add_missing_productId", "缺少productId添加购物车", "P1",
+     "/wx/cart/add", "POST", "是", "",
+     '{"goodsId": 1006002, "number": 1}',
+     200, "", "0", "", "", "否", ""],
+
+    ["购物车添加", "cart_add_missing_number", "缺少number添加购物车", "P1",
+     "/wx/cart/add", "POST", "是", "",
+     '{"goodsId": 1006002, "productId": 7}',
+     200, "", "0", "", "", "否", ""],
+
+    ["购物车添加", "cart_add_zero_number", "number=0添加购物车", "P1",
+     "/wx/cart/add", "POST", "是", "",
+     '{"goodsId": 1006002, "number": 0, "productId": 7}',
+     200, "", "0", "", "", "否", ""],
+
+    ["购物车添加", "cart_add_nonexistent_goods", "不存在的商品ID添加购物车", "P1",
+     "/wx/cart/add", "POST", "是", "",
+     '{"goodsId": 999999, "number": 1, "productId": 7}',
+     200, "", "0", "", "", "否", ""],
+
+    ["购物车添加", "cart_add_nonexistent_product", "存在商品但产品规格不存在", "P1",
+     "/wx/cart/add", "POST", "是", "",
+     '{"goodsId": 1006002, "number": 1, "productId": 999999}',
+     200, "", "0", "", "", "否", ""],
+
+    # ── 快速添加 ──
+    ["快速添加", "cart_fastadd_unauthorized", "未认证快速添加商品到购物车", "P0",
+     "/wx/cart/fastadd", "POST", "否", "",
+     '{"goodsId": 1006002, "number": 1, "productId": 7}',
+     200, 501, "", "", "", "否", ""],
+
+    ["快速添加", "cart_fastadd_missing_goodsId", "缺少goodsId快速添加", "P1",
+     "/wx/cart/fastadd", "POST", "是", "",
+     '{"number": 1, "productId": 7}',
+     200, "", "0", "", "", "否", ""],
+
+    ["快速添加", "cart_fastadd_nonexistent_goods", "不存在的商品ID快速添加", "P1",
+     "/wx/cart/fastadd", "POST", "是", "",
+     '{"goodsId": 999999, "number": 1, "productId": 7}',
+     200, "", "0", "", "", "否", ""],
+
+    # ── 购物车更新 ──
+    ["购物车更新", "cart_update_unauthorized", "未认证更新购物车商品数量", "P0",
+     "/wx/cart/update", "POST", "否", "",
+     '{"id": 1, "number": 3, "goodsId": 1006002, "productId": 7}',
+     200, 501, "", "", "", "否", ""],
+
+    ["购物车更新", "cart_update_missing_goodsId", "缺少goodsId更新购物车", "P1",
+     "/wx/cart/update", "POST", "是", "",
+     '{"id": 1, "number": 3, "productId": 7}',
+     200, "", "0", "", "", "否", ""],
+
+    ["购物车更新", "cart_update_nonexistent", "更新不存在的购物车条目", "P1",
+     "/wx/cart/update", "POST", "是", "",
+     '{"id": 99999, "number": 3, "goodsId": 1006002, "productId": 7}',
+     200, "", "0", "", "", "否", ""],
+
+    # ── 购物车选中 ──
+    ["购物车选中", "cart_checked_unauthorized", "未认证变更购物车选中状态", "P0",
+     "/wx/cart/checked", "POST", "否", "",
+     '{"isChecked": 1, "productIds": [7]}',
+     200, 501, "", "", "", "否", ""],
+
+    ["购物车选中", "cart_checked_nonexistent_product", "选中不存在的productId（无操作返回成功）", "P1",
+     "/wx/cart/checked", "POST", "是", "",
+     '{"isChecked": 1, "productIds": [999999]}',
+     200, 0, "", "成功", "", "是", ""],
+
+    # ── 购物车删除 ──
+    ["购物车删除", "cart_delete_unauthorized", "未认证删除购物车商品", "P0",
+     "/wx/cart/delete", "POST", "否", "",
+     '{"productIds": [7]}',
+     200, 501, "", "", "", "否", ""],
+
+    ["购物车删除", "cart_delete_nonexistent_product", "删除不存在的productId（无操作返回成功）", "P1",
+     "/wx/cart/delete", "POST", "是", "",
+     '{"productIds": [999999]}',
+     200, 0, "", "成功", "", "是", ""],
+
+    # ── 购物车数量 ──
+    ["购物车数量", "cart_count_no_auth", "未认证查询购物车数量（公开接口返回0）", "P0",
+     "/wx/cart/goodscount", "GET", "否", "", "",
+     200, 0, "", "成功", "", "是", ""],
+
+    ["购物车数量", "cart_count_success", "认证用户查询购物车商品数量", "P0",
+     "/wx/cart/goodscount", "GET", "是", "", "",
+     200, 0, "", "成功", "", "是", ""],
+
+    # ── 购物车结算 ──
+    ["购物车结算", "cart_checkout_unauthorized", "未认证购物车结算", "P0",
+     "/wx/cart/checkout", "GET", "否",
+     "cartId=0&addressId=0&couponId=0&userCouponId=0&grouponRulesId=0", "",
+     200, 501, "", "", "", "否", ""],
+
+    ["购物车结算", "cart_checkout_default_params", "默认参数购物车结算（空购物车也有结算数据）", "P1",
+     "/wx/cart/checkout", "GET", "是", "", "",
+     200, 0, "", "成功", "", "是", ""],
+
+    # ── 地址列表 ──
+    ["地址列表", "address_list_success", "认证用户查看地址列表", "P0",
+     "/wx/address/list", "GET", "是", "", "",
+     200, 0, "", "成功", "", "是", "total, pages, list"],
+
+    ["地址列表", "address_list_unauthorized", "未认证查看地址列表", "P0",
+     "/wx/address/list", "GET", "否", "", "",
+     200, 501, "", "", "", "否", ""],
+
+    # ── 地址详情 ──
+    ["地址详情", "address_detail_unauthorized", "未认证查看地址详情", "P0",
+     "/wx/address/detail", "GET", "否", "id=1", "",
+     200, 501, "", "", "", "否", ""],
+
+    ["地址详情", "address_detail_missing_id", "不传id查地址详情", "P0",
+     "/wx/address/detail", "GET", "是", "", "",
+     200, 402, "", "id不能为null", "", "否", ""],
+
+    ["地址详情", "address_detail_nonexistent", "不存在的地址id", "P1",
+     "/wx/address/detail", "GET", "是", "id=99999", "",
+     200, 402, "", "", "", "否", ""],
+
+    # ── 地址保存 ──
+    ["地址保存", "address_save_unauthorized", "未认证保存地址", "P0",
+     "/wx/address/save", "POST", "否", "",
+     '{"name": "Test", "tel": "13800138000", "province": "北京市", "city": "北京市", "county": "东城区", "addressDetail": "测试路1号", "areaCode": "110101", "isDefault": false}',
+     200, 501, "", "", "", "否", ""],
+
+    ["地址保存", "address_save_empty_body", "空请求体保存地址", "P1",
+     "/wx/address/save", "POST", "是", "", "{}",
+     200, 401, "", "", "", "否", ""],
+
+    ["地址保存", "address_save_missing_fields", "仅传name缺少必填字段", "P1",
+     "/wx/address/save", "POST", "是", "",
+     '{"name": "test"}',
+     200, 401, "", "", "", "否", ""],
+
+    ["地址保存", "address_save_update_nonexistent", "更新不存在的地址id", "P1",
+     "/wx/address/save", "POST", "是", "",
+     '{"id": 99999, "name": "Ghost", "tel": "13800138000", "province": "北京市", "city": "北京市", "county": "东城区", "addressDetail": "不存在", "areaCode": "110101"}',
+     200, 401, "", "", "", "否", ""],
+
+    # ── 地址删除 ──
+    ["地址删除", "address_delete_unauthorized", "未认证删除地址", "P0",
+     "/wx/address/delete", "POST", "否", "",
+     '{"id": 1}',
+     200, 501, "", "", "", "否", ""],
+
+    ["地址删除", "address_delete_empty_body", "空请求体删除地址", "P1",
+     "/wx/address/delete", "POST", "是", "", "{}",
+     200, 401, "", "", "", "否", ""],
+
+    ["地址删除", "address_delete_nonexistent", "删除不存在的地址", "P1",
+     "/wx/address/delete", "POST", "是", "",
+     '{"id": 99999}',
+     200, 402, "", "", "", "否", ""],
+
+    # ── 订单列表 ──
+    ["订单列表", "order_list_success", "认证用户查看订单列表", "P0",
+     "/wx/order/list", "GET", "是", "", "",
+     200, 0, "", "成功", "", "是", "total, pages, list"],
+
+    ["订单列表", "order_list_unauthorized", "未认证查看订单列表", "P0",
+     "/wx/order/list", "GET", "否", "", "",
+     200, 501, "", "", "", "否", ""],
+
+    # ── 订单详情 ──
+    ["订单详情", "order_detail_unauthorized", "未认证查看订单详情", "P0",
+     "/wx/order/detail", "GET", "否", "orderId=1", "",
+     200, 501, "", "", "", "否", ""],
+
+    ["订单详情", "order_detail_missing_id", "不传orderId查订单详情", "P0",
+     "/wx/order/detail", "GET", "是", "", "",
+     200, 402, "", "orderId不能为null", "", "否", ""],
+
+    ["订单详情", "order_detail_nonexistent", "不存在的订单id", "P1",
+     "/wx/order/detail", "GET", "是", "orderId=99999", "",
+     200, 720, "", "", "", "否", ""],
+
+    # ── 订单提交 ──
+    ["订单提交", "order_submit_unauthorized", "未认证提交订单", "P0",
+     "/wx/order/submit", "POST", "否", "",
+     '{"cartId": 0, "addressId": 1, "couponId": -1, "userCouponId": -1, "grouponRulesId": 0, "message": "test"}',
+     200, 501, "", "", "", "否", ""],
+
+    ["订单提交", "order_submit_empty_body", "空请求体提交订单", "P1",
+     "/wx/order/submit", "POST", "是", "", "{}",
+     200, 401, "", "", "", "否", ""],
+
+    # ── 订单取消 ──
+    ["订单取消", "order_cancel_unauthorized", "未认证取消订单", "P0",
+     "/wx/order/cancel", "POST", "否", "",
+     '{"orderId": 1}',
+     200, 501, "", "", "", "否", ""],
+
+    ["订单取消", "order_cancel_empty_body", "空请求体取消订单", "P1",
+     "/wx/order/cancel", "POST", "是", "", "{}",
+     200, 401, "", "", "", "否", ""],
+
+    ["订单取消", "order_cancel_nonexistent", "取消不存在的订单", "P1",
+     "/wx/order/cancel", "POST", "是", "",
+     '{"orderId": 99999}',
+     200, 402, "", "", "", "否", ""],
+
+    # ── 确认收货 ──
+    ["确认收货", "order_confirm_unauthorized", "未认证确认收货", "P0",
+     "/wx/order/confirm", "POST", "否", "",
+     '{"orderId": 1}',
+     200, 501, "", "", "", "否", ""],
+
+    ["确认收货", "order_confirm_empty_body", "空请求体确认收货", "P1",
+     "/wx/order/confirm", "POST", "是", "", "{}",
+     200, 401, "", "", "", "否", ""],
+
+    # ── 订单删除 ──
+    ["订单删除", "order_delete_unauthorized", "未认证删除订单", "P0",
+     "/wx/order/delete", "POST", "否", "",
+     '{"orderId": 1}',
+     200, 501, "", "", "", "否", ""],
+
+    ["订单删除", "order_delete_empty_body", "空请求体删除订单", "P1",
+     "/wx/order/delete", "POST", "是", "", "{}",
+     200, 401, "", "", "", "否", ""],
+
+    ["订单删除", "order_delete_nonexistent", "删除不存在的订单", "P1",
+     "/wx/order/delete", "POST", "是", "",
+     '{"orderId": 99999}',
+     200, 401, "", "", "", "否", ""],
+
+    # ── 订单评价 ──
+    ["订单评价", "order_comment_unauthorized", "未认证订单评价", "P0",
+     "/wx/order/comment", "POST", "否", "",
+     '{"orderGoodsId": 1, "content": "好评", "star": 5, "hasPicture": false, "picUrls": []}',
+     200, 501, "", "", "", "否", ""],
+
+    ["订单评价", "order_comment_empty_body", "空请求体订单评价", "P1",
+     "/wx/order/comment", "POST", "是", "", "{}",
+     200, 401, "", "", "", "否", ""],
+
+    # ── 订单商品 ──
+    ["订单商品", "order_goods_unauthorized", "未认证查看订单商品", "P0",
+     "/wx/order/goods", "GET", "否", "ogid=1", "",
+     200, 501, "", "", "", "否", ""],
+
+    ["订单商品", "order_goods_missing_id", "不传ogid查订单商品", "P0",
+     "/wx/order/goods", "GET", "是", "", "",
+     200, 402, "", "ogid不能为null", "", "否", ""],
+
+    ["订单商品", "order_goods_nonexistent", "不存在的ogid查订单商品（返回null数据）", "P1",
+     "/wx/order/goods", "GET", "是", "ogid=99999", "",
+     200, 0, "", "成功", "", "否", ""],
+
+    # ── 首页 ──
+    ["首页", "home_index_success", "获取首页数据（新品/热门/专题/品牌等）", "P0",
+     "/wx/home/index", "GET", "否", "", "",
+     200, 0, "", "成功", "", "是", "newGoodsList, hotGoodsList, banner, channel, brandList"],
+
+    ["首页", "home_about_success", "获取关于页面信息", "P1",
+     "/wx/home/about", "GET", "否", "", "",
+     200, 0, "", "成功", "", "是", "name, address, phone, qq"],
 ]
 
 
@@ -315,7 +615,13 @@ def create_excel():
 
     # Sheet 顺序
     sheet_order = ["登录", "登出", "用户信息", "注册", "密码重置",
-                   "商品列表", "商品详情", "商品分类", "相关商品", "商品统计"]
+                   "商品列表", "商品详情", "商品分类", "相关商品", "商品统计",
+                   "购物车列表", "购物车添加", "快速添加", "购物车更新",
+                   "购物车选中", "购物车删除", "购物车数量", "购物车结算",
+                   "地址列表", "地址详情", "地址保存", "地址删除",
+                   "订单列表", "订单详情", "订单提交", "订单取消",
+                   "确认收货", "订单删除", "订单评价", "订单商品",
+                   "首页"]
 
     for sheet_name in sheet_order:
         ws = wb.create_sheet(sheet_name)

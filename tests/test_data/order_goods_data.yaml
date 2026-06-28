@@ -1,0 +1,40 @@
+# Litemall 订单商品 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+order_goods_unauthorized:
+  description: 未认证查看订单商品
+  module: 订单商品
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/order/goods
+  expected:
+    errno: 501
+    has_data: false
+  params: ogid=1
+
+order_goods_missing_id:
+  description: 不传ogid查订单商品
+  module: 订单商品
+  priority: P0
+  method: GET
+  need_auth: true
+  endpoint: /wx/order/goods
+  expected:
+    errno: 402
+    errmsg: ogid不能为null
+    has_data: false
+
+order_goods_nonexistent:
+  description: 不存在的ogid查订单商品（返回null数据）
+  module: 订单商品
+  priority: P1
+  method: GET
+  need_auth: true
+  endpoint: /wx/order/goods
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: false
+  params: ogid=99999

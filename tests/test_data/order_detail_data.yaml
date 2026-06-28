@@ -1,0 +1,39 @@
+# Litemall 订单详情 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+order_detail_unauthorized:
+  description: 未认证查看订单详情
+  module: 订单详情
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/order/detail
+  expected:
+    errno: 501
+    has_data: false
+  params: orderId=1
+
+order_detail_missing_id:
+  description: 不传orderId查订单详情
+  module: 订单详情
+  priority: P0
+  method: GET
+  need_auth: true
+  endpoint: /wx/order/detail
+  expected:
+    errno: 402
+    errmsg: orderId不能为null
+    has_data: false
+
+order_detail_nonexistent:
+  description: 不存在的订单id
+  module: 订单详情
+  priority: P1
+  method: GET
+  need_auth: true
+  endpoint: /wx/order/detail
+  expected:
+    errno: 720
+    has_data: false
+  params: orderId=99999

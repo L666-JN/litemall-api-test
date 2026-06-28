@@ -1,0 +1,34 @@
+# Litemall 购物车选中 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+cart_checked_unauthorized:
+  description: 未认证变更购物车选中状态
+  module: 购物车选中
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/cart/checked
+  expected:
+    errno: 501
+    has_data: false
+  request:
+    isChecked: 1
+    productIds:
+    - 7
+
+cart_checked_nonexistent_product:
+  description: 选中不存在的productId（无操作返回成功）
+  module: 购物车选中
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/checked
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: true
+  request:
+    isChecked: 1
+    productIds:
+    - 999999

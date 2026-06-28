@@ -1,0 +1,29 @@
+# Litemall 购物车列表 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+cart_index_success:
+  description: 认证用户查看购物车列表
+  module: 购物车列表
+  priority: P0
+  method: GET
+  need_auth: true
+  endpoint: /wx/cart/index
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: true
+    fields:
+    - cartTotal
+    - cartList
+
+cart_index_unauthorized:
+  description: 未认证查看购物车列表
+  module: 购物车列表
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/cart/index
+  expected:
+    errno: 501
+    has_data: false

@@ -1,0 +1,39 @@
+# Litemall 地址详情 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+address_detail_unauthorized:
+  description: 未认证查看地址详情
+  module: 地址详情
+  priority: P0
+  method: GET
+  need_auth: false
+  endpoint: /wx/address/detail
+  expected:
+    errno: 501
+    has_data: false
+  params: id=1
+
+address_detail_missing_id:
+  description: 不传id查地址详情
+  module: 地址详情
+  priority: P0
+  method: GET
+  need_auth: true
+  endpoint: /wx/address/detail
+  expected:
+    errno: 402
+    errmsg: id不能为null
+    has_data: false
+
+address_detail_nonexistent:
+  description: 不存在的地址id
+  module: 地址详情
+  priority: P1
+  method: GET
+  need_auth: true
+  endpoint: /wx/address/detail
+  expected:
+    errno: 402
+    has_data: false
+  params: id=99999

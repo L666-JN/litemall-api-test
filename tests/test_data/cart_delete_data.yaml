@@ -1,0 +1,32 @@
+# Litemall 购物车删除 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+cart_delete_unauthorized:
+  description: 未认证删除购物车商品
+  module: 购物车删除
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/cart/delete
+  expected:
+    errno: 501
+    has_data: false
+  request:
+    productIds:
+    - 7
+
+cart_delete_nonexistent_product:
+  description: 删除不存在的productId（无操作返回成功）
+  module: 购物车删除
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/cart/delete
+  expected:
+    errno: 0
+    errmsg: 成功
+    has_data: true
+  request:
+    productIds:
+    - 999999

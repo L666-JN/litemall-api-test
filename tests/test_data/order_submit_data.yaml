@@ -1,0 +1,32 @@
+# Litemall 订单提交 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+order_submit_unauthorized:
+  description: 未认证提交订单
+  module: 订单提交
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/order/submit
+  expected:
+    errno: 501
+    has_data: false
+  request:
+    cartId: 0
+    addressId: 1
+    couponId: -1
+    userCouponId: -1
+    grouponRulesId: 0
+    message: test
+
+order_submit_empty_body:
+  description: 空请求体提交订单
+  module: 订单提交
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/order/submit
+  expected:
+    errno: 401
+    has_data: false

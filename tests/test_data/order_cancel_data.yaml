@@ -1,0 +1,40 @@
+# Litemall 订单取消 测试数据
+# 由 scripts/excel_to_yaml.py 自动生成
+# 来源: D:\litemall-api-test\test_design\litemall_testcases.xlsx
+
+order_cancel_unauthorized:
+  description: 未认证取消订单
+  module: 订单取消
+  priority: P0
+  method: POST
+  need_auth: false
+  endpoint: /wx/order/cancel
+  expected:
+    errno: 501
+    has_data: false
+  request:
+    orderId: 1
+
+order_cancel_empty_body:
+  description: 空请求体取消订单
+  module: 订单取消
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/order/cancel
+  expected:
+    errno: 401
+    has_data: false
+
+order_cancel_nonexistent:
+  description: 取消不存在的订单
+  module: 订单取消
+  priority: P1
+  method: POST
+  need_auth: true
+  endpoint: /wx/order/cancel
+  expected:
+    errno: 402
+    has_data: false
+  request:
+    orderId: 99999
